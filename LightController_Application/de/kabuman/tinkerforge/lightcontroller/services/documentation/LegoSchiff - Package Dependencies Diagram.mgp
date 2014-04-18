@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PackageAnalysis>
+    <Package name="de.kabuman.tinkerforge.legoschiff" x="365" y="89">
+        <DependencyLink destination="de.kabuman.common.services"/>
+        <DependencyLink destination="de.kabuman.tinkerforge.services"/>
+        <DependencyLink destination="de.kabuman.tinkerforge.legoschiff.services"/>
+    </Package>
+    <Package name="de.kabuman.tinkerforge.legoschiff.services" x="80" y="201">
+        <DependencyLink destination="de.kabuman.tinkerforge.services"/>
+    </Package>
+    <Package name="de.kabuman.tinkerforge.services" x="145" y="406">
+        <DependencyLink destination="de.kabuman.common.services"/>
+    </Package>
+    <Package name="de.kabuman.common.services" x="390" y="407"/>
+</PackageAnalysis>

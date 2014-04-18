@@ -1,0 +1,6 @@
+String[][] sa = { {"foo", "foo1"}, {"bar", "bar1"} };
+
+System.out.println(sa[0][0]);
+System.out.println(sa[0][1]);
+System.out.println(sa[1][0]);
+System.out.println(sa[1][1]);
