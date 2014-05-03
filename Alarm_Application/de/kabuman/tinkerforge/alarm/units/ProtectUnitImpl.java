@@ -70,7 +70,7 @@ public class ProtectUnitImpl implements ProtectUnit{
 	// Water Sensor
 	private BrickletAnalogIn waterSensor = null;
 	private final long waterSensorDebounce = 100l;   // 100 l  (for Long)
-	private final short waterSensorThreshold = 100;   // milli voltage
+	private final short waterSensorThreshold = 250;   // milli voltage
 	
 	// Temperature Sensor
 	private BrickletTemperature temperatureSensor = null;
@@ -110,7 +110,7 @@ public class ProtectUnitImpl implements ProtectUnit{
 	 */
 	public ProtectUnitImpl(CfgProtectUnit cfgProtectUnit){
 		this.cfgProtectUnit = cfgProtectUnit;
-		
+		 
 		connect();
 	}
 
