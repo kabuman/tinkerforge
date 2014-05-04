@@ -38,7 +38,7 @@ public class WaterSensorItemImpl implements WaterSensorItem {
 		this.waterSensor = waterSensor;
 		this.debouncePeriod = debouncePeriod;
 		this.option = option;
-		this.threshold = threshold;
+		this.threshold = 250;
 		
 		installWaterSensor();
 		
