@@ -233,14 +233,14 @@ public class ProtectUnitImpl implements ProtectUnit{
 		if (cfgProtectUnit.getAi() > 0){
 			try {
 				waterSensor = (BrickletAnalogIn) ConnectServiceImpl.getInstance().createAndConnect(ipcon, cfgProtectUnit.getAi(), cfgProtectUnit.getUnitName()+": Wassersensor");
-			
-			new WaterSensorItemImpl(
-					this,
-					waterSensor,
-					waterSensorDebounce,
-					WaterSensorItem.OPTION_GREATER,
-					waterSensorThreshold,
-					true);
+
+				new WaterSensorItemImpl(
+						this,
+						waterSensor,
+						waterSensorDebounce,
+						WaterSensorItem.OPTION_GREATER,
+						waterSensorThreshold,
+						true);
 			} catch (TimeoutException e) {
 				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "Connect", "Water Sensor failed. Timeout");
 			}

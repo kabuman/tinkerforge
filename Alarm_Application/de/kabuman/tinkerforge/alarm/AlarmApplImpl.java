@@ -78,7 +78,7 @@ public class AlarmApplImpl implements AlarmAppl{
 	 */
 	public AlarmApplImpl(String[] args) {
 		if (args.length !=7){
-			throw new IllegalArgumentException("Es werden 6 Aufrufparameter erwartet. Definiert wurden aber "+args.length);
+			throw new IllegalArgumentException("Es werden 7 Aufrufparameter erwartet. Definiert wurden aber "+args.length);
 		}
 		
 		power = args[0];
