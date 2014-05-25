@@ -13,7 +13,7 @@ public class EmailServiceTestMain {
         int port=25;
         String user="kabumobil@online.de";
         String password="KVrF92V8RBiGXs0f4ghfz2be2";
-        String sentFrom = "karsten.buchmann@freenet.de";
+        String sentFrom = "Alarmanlage@online.de";
         
 		EmailService emailService = new EmailServiceImpl(
 				host,

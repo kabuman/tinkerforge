@@ -13,6 +13,8 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import com.sun.mail.util.MailSSLSocketFactory;
+
 
 public class EmailServiceImpl implements EmailService {
 
@@ -47,8 +49,8 @@ public class EmailServiceImpl implements EmailService {
         properties.put("mail.smtp.port",port);
         properties.put("mail.user",user);
         properties.put("mail.password",password);
+        properties.put("mail.smtp.starttls.enable", "true");
 
-        
         // Authorisation
         Authenticator auth = null;
         auth = new Authenticator()

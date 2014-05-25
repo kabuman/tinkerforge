@@ -13,3 +13,5 @@
 /StringService.class
 /TableFormatterService.class
 /TableFormatterServiceImpl.class
+/DummySSLSocketFactory.class
+/DummyTrustManager.class
