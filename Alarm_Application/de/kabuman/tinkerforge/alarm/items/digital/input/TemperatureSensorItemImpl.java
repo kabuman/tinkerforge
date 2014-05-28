@@ -4,12 +4,14 @@ import com.tinkerforge.BrickletTemperature;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
-import de.kabuman.tinkerforge.alarm.controller.LogControllerImpl;
+import de.kabuman.common.services.MinMaxService;
+import de.kabuman.common.services.MinMaxServiceImpl;
 import de.kabuman.tinkerforge.alarm.units.Unit;
 
-public class TemperatureSensorItemImpl implements TemperatureSensorItem, CallbackShortConsumer {
+public class TemperatureSensorItemImpl extends ItemImpl implements TemperatureSensorItem, CallbackShortConsumer {
 
 	// Parameter Values
+	@SuppressWarnings("unused")
 	private Unit unit;
 	private BrickletTemperature temperatureSensor = null;
 	private long callbackPeriod;
@@ -19,7 +21,7 @@ public class TemperatureSensorItemImpl implements TemperatureSensorItem, Callbac
 	
 	// Callback Listener 
 	private TemperatureCallbackListenerImpl callbackListener = null;
-
+	
 	private final long zero = 0;
 	private short currentValue = 0; 
 	
@@ -32,7 +34,7 @@ public class TemperatureSensorItemImpl implements TemperatureSensorItem, Callbac
 			Unit unit,
 			BrickletTemperature temperatureSensor,
 			long callbackPeriod){
-//		super(temperatureSensor);
+		super();
 		
 		this.callbackPeriod = callbackPeriod;
 		this.temperatureSensor = temperatureSensor;
@@ -96,12 +98,8 @@ public class TemperatureSensorItemImpl implements TemperatureSensorItem, Callbac
 	 */
 	public void valueChanged(short value) {
 		short newValue = (short)Math.round(value * 0.1);  // Round down: 2234 -> 223.4 -> 223  //   Round up: 2235 -> 223.5 -> 224  
-
-//		if (currentValue != newValue){
-//			LogControllerImpl.getInstance().createTechnicalLogMessage(unit.getUnitName(), "Temperature Sensor", "Reported value = " + value + "  Prepared value = "+newValue);
-//		}
-
 		currentValue = newValue;
+		regardValue(getCurrentValue());
 	}
 
 	/* (non-Javadoc)

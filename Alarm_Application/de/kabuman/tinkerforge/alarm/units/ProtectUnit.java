@@ -2,6 +2,7 @@ package de.kabuman.tinkerforge.alarm.units;
 
 import de.kabuman.tinkerforge.alarm.items.digital.input.OpenSensorItem;
 import de.kabuman.tinkerforge.alarm.items.digital.output.OutputItem;
+import de.kabuman.tinkerforge.alarm.items.digital.output.WaterSensorItem;
 
 
 /**
@@ -31,5 +32,13 @@ public interface ProtectUnit extends Unit{
 	 * @return OutputItem
 	 */
 	OutputItem getLEDItem();
+	
+	/**
+	 * Returns the water sensor item
+	 * 
+	 * @return WaterSensorItem - the water sensor object
+	 */
+	WaterSensorItem getWaterSensorItem();
+
 
 }

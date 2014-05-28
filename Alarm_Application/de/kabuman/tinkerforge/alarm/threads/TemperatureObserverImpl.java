@@ -3,8 +3,11 @@ package de.kabuman.tinkerforge.alarm.threads;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.kabuman.tinkerforge.alarm.controller.LogController;
 import de.kabuman.tinkerforge.alarm.controller.LogControllerImpl;
+import de.kabuman.tinkerforge.alarm.items.digital.input.HumiditySensorItem;
+import de.kabuman.tinkerforge.alarm.items.digital.input.TemperatureSensorItem;
+import de.kabuman.tinkerforge.alarm.items.digital.output.WaterSensorItem;
+import de.kabuman.tinkerforge.alarm.units.ProtectUnit;
 import de.kabuman.tinkerforge.alarm.units.Unit;
 
 
@@ -22,6 +25,8 @@ public class TemperatureObserverImpl extends Thread{
 	boolean active = true;
 
 	private final String sep = ";";
+	
+	
 	/**
 	 * Constructor
 	 */
@@ -39,6 +44,7 @@ public class TemperatureObserverImpl extends Thread{
 		active = false;
 		this.interrupt();
 	}
+	
 	
 	/**
 	 * This method will be called by starting the thread
@@ -60,13 +66,18 @@ public class TemperatureObserverImpl extends Thread{
 						Unit unit = unitList.get(i);
 						
 						if (unit.getTemperatureSensorItem() != null){
-							LogControllerImpl.getInstance().createTechnicalLogMessage(unit.getUnitName(), "TemperatureObserver: TemperaturSensor", "Reported value = " + unit.getTemperatureSensorItem().getCurrentValue());
-							temperatureLogData.append(sep + Double.toString(unit.getTemperatureSensorItem().getCurrentValue()).replace('.', ','));
+							temperatureLogData.append(writeTechnicalLogAndCollectForTemperatureLog(unit));
 						}
 						
 						if (unit.getHumiditySensorItem() != null){
-							LogControllerImpl.getInstance().createTechnicalLogMessage(unit.getUnitName(), "TemperatureObserver: Humidity Sensor", "Reported value = " +  + unit.getHumiditySensorItem().getCurrentValue());
-							humidityLogData.append(sep + Double.toString(unit.getHumiditySensorItem().getCurrentValue()).replace('.', ','));
+							humidityLogData.append(writeTechnicalLogAndCollectForHumidityLog(unit));
+						}
+						
+						if (unit instanceof ProtectUnit){
+							ProtectUnit protectUnit = (ProtectUnit) unit;
+							if (protectUnit.getWaterSensorItem() != null){
+								writeTechnicalLogForWaterSensor(protectUnit);
+							}
 						}
 					}
 					LogControllerImpl.getInstance().createTemperatureLogMessage(temperatureLogData.toString());
@@ -76,5 +87,31 @@ public class TemperatureObserverImpl extends Thread{
 		} catch (InterruptedException e) {
 		} 
 	}
+
+	private String writeTechnicalLogAndCollectForTemperatureLog(Unit unit){
+		TemperatureSensorItem si = unit.getTemperatureSensorItem(); 
+		LogControllerImpl.getInstance().createTechnicalLogMessage(unit.getUnitName(), "TemperatureObserver: TemperaturSensor", concat(si.getCurrentValue(),si.getMinimumValue(),si.getMaximumValue(),si.getAverageValue()));
+		return sep + Double.toString(si.getCurrentValue()).replace('.', ',');
+	}
 	
+	private String writeTechnicalLogAndCollectForHumidityLog(Unit unit){
+		HumiditySensorItem si = unit.getHumiditySensorItem(); 
+		LogControllerImpl.getInstance().createTechnicalLogMessage(unit.getUnitName(), "TemperatureObserver: Humidity Sensor", concat(si.getCurrentValue(),si.getMinimumValue(),si.getMaximumValue(),si.getAverageValue()));
+		return sep + Double.toString(si.getCurrentValue()).replace('.', ',');
+	}
+	
+	private void writeTechnicalLogForWaterSensor(ProtectUnit protectUnit){
+		WaterSensorItem si = protectUnit.getWaterSensorItem(); 
+		LogControllerImpl.getInstance().createTechnicalLogMessage(protectUnit.getUnitName(), "TemperatureObserver: Water Sensor", concat(si.getCurrentValue(),si.getMinimumValue(),si.getMaximumValue(),si.getAverageValue()));
+	}
+	
+	private String concat(double... values){
+		StringBuffer sb = new StringBuffer();
+		for (double value : values) {
+			String s = (sb.length()==0)? "Reported values (current/Min/Max/Avg) = " : " / ";
+			sb.append(s);
+			sb.append(value);
+		}
+		return sb.toString();
+	}
 }

@@ -15,3 +15,5 @@
 /TableFormatterServiceImpl.class
 /DummySSLSocketFactory.class
 /DummyTrustManager.class
+/MinMaxService.class
+/MinMaxServiceImpl.class

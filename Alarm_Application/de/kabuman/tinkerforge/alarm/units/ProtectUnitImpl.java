@@ -51,6 +51,7 @@ public class ProtectUnitImpl implements ProtectUnit{
 	private MotionSensorItem motionSensorItem = null;
 	private MotionDetectionItem motionDetectionItem = null;
 	private OpenSensorItem openSensorItem = null; 
+	private WaterSensorItem waterSensorItem = null;
 	private OutputItem ledItem = null;
 	private OutputItem beeperItem = null;
 
@@ -234,7 +235,7 @@ public class ProtectUnitImpl implements ProtectUnit{
 			try {
 				waterSensor = (BrickletAnalogIn) ConnectServiceImpl.getInstance().createAndConnect(ipcon, cfgProtectUnit.getAi(), cfgProtectUnit.getUnitName()+": Wassersensor");
 
-				new WaterSensorItemImpl(
+				waterSensorItem = new WaterSensorItemImpl(
 						this,
 						waterSensor,
 						waterSensorDebounce,
@@ -486,6 +487,10 @@ public class ProtectUnitImpl implements ProtectUnit{
 	 */
 	public OutputItem getLEDItem() {
 		return ledItem;
+	}
+
+	public WaterSensorItem getWaterSensorItem() {
+		return waterSensorItem;
 	}
 
 

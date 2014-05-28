@@ -1,6 +1,6 @@
 package de.kabuman.tinkerforge.alarm.items.digital.input;
 
-public interface HumiditySensorItem {
+public interface HumiditySensorItem extends Item{
 	
 	/**
 	 * Activates the Sensor 

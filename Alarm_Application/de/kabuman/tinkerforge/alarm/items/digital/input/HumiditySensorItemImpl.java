@@ -4,12 +4,12 @@ import com.tinkerforge.BrickletHumidity;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
-import de.kabuman.tinkerforge.alarm.controller.LogControllerImpl;
 import de.kabuman.tinkerforge.alarm.units.Unit;
 
-public class HumiditySensorItemImpl implements HumiditySensorItem, CallbackIntConsumer {
+public class HumiditySensorItemImpl extends ItemImpl implements HumiditySensorItem, CallbackIntConsumer {
 
 	// Parameter Values
+	@SuppressWarnings("unused")
 	private Unit unit;
 	private BrickletHumidity humiditySensor = null;
 	private long callbackPeriod;
@@ -95,12 +95,8 @@ public class HumiditySensorItemImpl implements HumiditySensorItem, CallbackIntCo
 	 */
 	public void valueChanged(int value) {
 		int newValue = (int)Math.round(value * 0.1);  // Round down: 354 -> 35.4 -> 35  //   Round up: 355 -> 35.5 -> 36  
-
-//		if (currentValue != newValue){
-//			LogControllerImpl.getInstance().createTechnicalLogMessage(unit.getUnitName(), "Humidity Sensor", "Reported value = " + value + "  Prepared value = "+newValue);
-//		}
-
 		currentValue = newValue;
+		regardValue(getCurrentValue());
 	}
 
 	public int getCurrentValue() {

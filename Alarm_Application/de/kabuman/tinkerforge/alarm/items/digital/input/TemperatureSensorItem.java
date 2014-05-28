@@ -1,6 +1,6 @@
 package de.kabuman.tinkerforge.alarm.items.digital.input;
 
-public interface TemperatureSensorItem {
+public interface TemperatureSensorItem extends Item{
 	
 	/**
 	 * Activates the Sensor 
