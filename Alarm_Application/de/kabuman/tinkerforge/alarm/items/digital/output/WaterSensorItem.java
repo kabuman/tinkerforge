@@ -8,9 +8,15 @@ public interface WaterSensorItem extends Item{
 	final static char OPTION_GREATER = '>';
 	final static long DEBOUNCE_PERIOD_STANDARD = 500l;  // 500 l (for long)
 	
-	public void activateWaterSensor();
+	/**
+	 * Activates the sensor 
+	 */
+	public void activateSensor();
 	
-	public void deactivateWaterSensor();
+	/**
+	 * Deactivates the sensor 
+	 */
+	public void deactivateSensor();
 	
 	public boolean isActive();
 	

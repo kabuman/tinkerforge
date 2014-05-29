@@ -25,9 +25,9 @@ public class WaterSensorItemImpl extends ItemImpl implements WaterSensorItem, Ca
 	private WaterCallbackListenerImpl callbackListener = null;
 	
 	// others
-	private final char offOption = 'x';
-	private final short shortZero = 0;
-	private final short averageLength = 255; // 0: without average (peaks!); 1-255: with average
+	private static final char OFF_OPTION = 'x';
+	private static final short SHORT_ZERO = 0;
+	private static final short AVERAGE_LENGTH = 255; // 0: without average (peaks!); 1-255: with average
 	
 	// state
 	boolean active = false;
@@ -50,7 +50,7 @@ public class WaterSensorItemImpl extends ItemImpl implements WaterSensorItem, Ca
 		installWaterSensor();
 		
 		if (enable){
-			activateWaterSensor();
+			activateSensor();
 		}
 	}
 
@@ -58,21 +58,21 @@ public class WaterSensorItemImpl extends ItemImpl implements WaterSensorItem, Ca
 		return active;
 	}
 	
-	public void activateWaterSensor(){
+	public void activateSensor(){
 		active = true;
-		setAverageLength(averageLength);
+		setAverageLength(AVERAGE_LENGTH);
 		setCallbackThreshold(option);
 	}
 	
-	public void deactivateWaterSensor(){
+	public void deactivateSensor(){
 		active = false;
-		setCallbackThreshold(offOption);
+		setCallbackThreshold(OFF_OPTION);
 	}
 	
 	private void setCallbackThreshold(char option){
 		try {
 			waterSensor.setDebouncePeriod(debouncePeriod);
-			waterSensor.setVoltageCallbackThreshold(option, threshold, shortZero);
+			waterSensor.setVoltageCallbackThreshold(option, threshold, SHORT_ZERO);
     		LogControllerImpl.getInstance().createTechnicalLogMessage(protectUnit.getUnitName(), "Wassersensor", "threshold gesetzt. option="+option+" threshold="+threshold);
 
 		} catch (TimeoutException e) {
@@ -94,7 +94,7 @@ public class WaterSensorItemImpl extends ItemImpl implements WaterSensorItem, Ca
 	private void installWaterSensor(){
 		active = false;
 		
-		setCallbackThreshold(offOption);
+		setCallbackThreshold(OFF_OPTION);
 		
 		callbackListener = new WaterCallbackListenerImpl(this);
 		

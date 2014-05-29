@@ -240,7 +240,7 @@ public class ProtectUnitImpl implements ProtectUnit{
 						waterSensorDebounce,
 						WaterSensorItem.OPTION_GREATER,
 						cfgProtectUnit.getAiVoltageThreshold(),
-						true);
+						false);
 			} catch (TimeoutException e) {
 				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "Connect", "Water Sensor failed. Timeout");
 			}
@@ -310,6 +310,10 @@ public class ProtectUnitImpl implements ProtectUnit{
 
 		if (humiditySensor != null){
 			humiditySensorItem.activateSensor();
+		}
+		
+		if (waterSensor != null){
+			waterSensorItem.activateSensor();
 		}
 		
 		if (AlertControllerImpl.getInstance().isOn()){
