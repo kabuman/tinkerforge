@@ -1,17 +1,18 @@
 package de.kabuman.tinkerforge.alarm.items.digital.output;
 
 import com.tinkerforge.BrickletAnalogIn;
-import com.tinkerforge.BrickletAnalogIn.VoltageReachedListener;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
 import de.kabuman.tinkerforge.alarm.controller.AlertController;
 import de.kabuman.tinkerforge.alarm.controller.LogController;
 import de.kabuman.tinkerforge.alarm.controller.LogControllerImpl;
+import de.kabuman.tinkerforge.alarm.items.digital.input.CallbackIntConsumer;
 import de.kabuman.tinkerforge.alarm.items.digital.input.ItemImpl;
+import de.kabuman.tinkerforge.alarm.items.digital.input.WaterCallbackListenerImpl;
 import de.kabuman.tinkerforge.alarm.units.ProtectUnit;
 
-public class WaterSensorItemImpl extends ItemImpl implements WaterSensorItem {
+public class WaterSensorItemImpl extends ItemImpl implements WaterSensorItem, CallbackIntConsumer{
 
 	// Parameter Values
 	private ProtectUnit protectUnit;
@@ -20,6 +21,9 @@ public class WaterSensorItemImpl extends ItemImpl implements WaterSensorItem {
 	private char option;
 	private short threshold;
 
+	// Callback Listener 
+	private WaterCallbackListenerImpl callbackListener = null;
+	
 	// others
 	private final char offOption = 'x';
 	private final short shortZero = 0;
@@ -91,13 +95,17 @@ public class WaterSensorItemImpl extends ItemImpl implements WaterSensorItem {
 		active = false;
 		
 		setCallbackThreshold(offOption);
-
-		waterSensor.addVoltageReachedListener(new VoltageReachedListener() {
-			public void voltageReached(int voltage) {
-            	protectUnit.activateAlert("Wassersensor", LogController.MSG_WATER, AlertController.ALERT_TYPE_WATER);
-        		LogControllerImpl.getInstance().createTechnicalLogMessage(protectUnit.getUnitName(), "Wassersensor", "voltage reached. voltage="+voltage);
-			}
-		});
+		
+		callbackListener = new WaterCallbackListenerImpl(this);
+		
+		waterSensor.addVoltageReachedListener(callbackListener);
+		
+//		waterSensor.addVoltageReachedListener(new VoltageReachedListener() {
+//			public void voltageReached(int voltage) {
+//            	protectUnit.activateAlert("Wassersensor", LogController.MSG_WATER, AlertController.ALERT_TYPE_WATER);
+//        		LogControllerImpl.getInstance().createTechnicalLogMessage(protectUnit.getUnitName(), "Wassersensor", "voltage reached. voltage="+voltage);
+//			}
+//		});
 	}
 
 	@Override
@@ -109,6 +117,12 @@ public class WaterSensorItemImpl extends ItemImpl implements WaterSensorItem {
 		} catch (TimeoutException | NotConnectedException e) {
 			return 0;
 		}
+	}
+
+	@Override
+	public void valueChanged(int value) {
+    	protectUnit.activateAlert("Wassersensor", LogController.MSG_WATER, AlertController.ALERT_TYPE_WATER);
+		LogControllerImpl.getInstance().createTechnicalLogMessage(protectUnit.getUnitName(), "Wassersensor", "voltage reached. voltage="+value);
 	}
 
 }
