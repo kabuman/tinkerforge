@@ -36,12 +36,13 @@ public class CreateCfgFromInputFile {
 	static private final int DISTANCE = 13;			// Entfernung für Bewegungsmelder
 //	static private final int AI_USEDFOR = 14;		// Name Wasser-Sensr (not used)
 	static private final int AI = 15;				// Wasser-Sensor
-//	static private final int TP_USEDFOR = 16;		// Name Temperatur-Sensor (not used)
-	static private final int TP = 17;				// Temperatur-Sensor
-//	static private final int HM_USEDFOR = 18;		// Name Rel.Luftfeuchtigkeits-Sensor (not used)
-	static private final int HM = 19;				// Rel.Luftfeuchtigkeits-Sensor
-//	static private final int MD_USEDFOR = 20;		// Name IR Bewegungsmelder (not used)
-	static private final int MD = 21;				// IR Bewegungsmelder
+	private static final int AI_VOLTAGE_THRESHOLD = 16; // Volt Threshold für Wasser-Sensor
+//	static private final int TP_USEDFOR = 17;		// Name Temperatur-Sensor (not used)
+	static private final int TP = 18;				// Temperatur-Sensor
+//	static private final int HM_USEDFOR = 19;		// Name Rel.Luftfeuchtigkeits-Sensor (not used)
+	static private final int HM = 20;				// Rel.Luftfeuchtigkeits-Sensor
+//	static private final int MD_USEDFOR = 21;		// Name IR Bewegungsmelder (not used)
+	static private final int MD = 22;				// IR Bewegungsmelder
 
 	// cfgEmail: sequence of comma separated vars
 	static private final int EMAIL_REQUESTED = 1;
@@ -167,6 +168,7 @@ public class CreateCfgFromInputFile {
 								cfgFile.getInteger(IR),
 								cfgFile.getShort(DISTANCE),
 								cfgFile.getInteger(AI),
+								cfgFile.getShort(AI_VOLTAGE_THRESHOLD),
 								cfgFile.getInteger(TP),
 								cfgFile.getInteger(HM),
 								cfgFile.getInteger(MD)
