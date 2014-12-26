@@ -1,5 +1,7 @@
 package de.kabuman.tinkerforge.alarm.config;
 
+import de.kabuman.tinkerforge.services.config.CfgRemoteSwitchData;
+
 
 public class CfgProtectUnit extends CfgUnit{
 
@@ -8,8 +10,12 @@ public class CfgProtectUnit extends CfgUnit{
 	private Integer tp;
 	private Integer hm;
 	private Integer md;
+	private Integer vc;
 	private Short distance;
 	private Short aiVoltageThreshold;
+	private Short vcVoltageThreshold;
+	private Short vcCurrentThresholdOk;
+	private Short vcCurrentThresholdAlert;
 	
 	/**
 	 * Config Object for Protect Unit
@@ -33,7 +39,11 @@ public class CfgProtectUnit extends CfgUnit{
 	 * @param aiVoltageThreshold - config of bricklet ai
 	 * @param tp - UID_xxx of the bricklet temperature (air thermometer) 
 	 * @param hm - UID_xxx of the bricklet humidity (hygrometer) 
-	 * @param md - 
+	 * @param md - motion detection bricklet (Bewegungsmelder)
+	 * @param vc - voltage/current bricklet (Rauchmelder)
+	 * @param vcVoltageThreshold - config of bricklet vc
+	 * @param vcCurrentThresholdOk - config of bricklet vc
+	 * @param vcCurrentThresholdAlert - config of bricklet vc
 	 */
 	public CfgProtectUnit (
 			CfgRemoteSwitchData cfgRemoteSwitchData,
@@ -50,7 +60,11 @@ public class CfgProtectUnit extends CfgUnit{
 			Short aiVoltageThreshold,
 			Integer tp,
 			Integer hm,
-			Integer md){
+			Integer md,
+			Integer vc,
+			Short vcVoltageThreshold,
+			Short vcCurrentThresholdOk,
+			Short vcCurrentThresholdAlert){
 		super(cfgRemoteSwitchData, host,port,unitName,mb,mbUsedFor,io,ioUsedFor);
 
 		this.ir = ir;
@@ -58,8 +72,12 @@ public class CfgProtectUnit extends CfgUnit{
 		this.tp = tp;
 		this.hm = hm;
 		this.md = md;
+		this.vc = vc;
 		this.distance = distance;
 		this.aiVoltageThreshold = aiVoltageThreshold;
+		this.vcVoltageThreshold = vcVoltageThreshold;
+		this.vcCurrentThresholdOk = vcCurrentThresholdOk;
+		this.vcCurrentThresholdAlert = vcCurrentThresholdAlert;
 	}
 
 	public Integer getIr() {
@@ -88,5 +106,21 @@ public class CfgProtectUnit extends CfgUnit{
 
 	public Short getAiVoltageThreshold() {
 		return aiVoltageThreshold;
+	}
+
+	public Integer getVc() {
+		return vc;
+	}
+
+	public Short getVcVoltageThreshold() {
+		return vcVoltageThreshold;
+	}
+
+	public Short getVcCurrentThresholdOk() {
+		return vcCurrentThresholdOk;
+	}
+
+	public Short getVcCurrentThresholdAlert() {
+		return vcCurrentThresholdAlert;
 	}
 }

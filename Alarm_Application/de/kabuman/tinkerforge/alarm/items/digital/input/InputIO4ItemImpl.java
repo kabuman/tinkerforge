@@ -96,6 +96,7 @@ public abstract class InputIO4ItemImpl extends IO4device implements InterruptCon
 	public void enable(){
 		enable = true;
 		setInterrupt(getAddedInterrupt(interrupt), debouncePeriod);
+//		setInterrupt(IOService.setBitON(interrupt), debouncePeriod);
 	}
 
 	/**

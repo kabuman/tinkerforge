@@ -4,20 +4,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.kabuman.common.services.ConfigFileReader;
+import de.kabuman.tinkerforge.services.config.CfgRemoteSwitchData;
+import de.kabuman.tinkerforge.services.config.CreateStdCfgFromInputFile;
 
-public class CreateCfgFromInputFile {
+/**
+ * Creates the Cfg Objects from text input file
+ *
+ */
+public class CreateCfgFromInputFile extends CreateStdCfgFromInputFile{
 	// Record Types
 	static private final int RECTYPE_ALERTSIGNAL = 1;
 	static private final int RECTYPE_ALERTUNITREMOTE = 2;
 	static private final int REC_TYPE_ALERTUNIT = 3;
 	static private final int RECTYPE_PROTECTUNIT = 4;
-	static private final int RECTYPE_EMAIL = 5;
-	static private final int RECTYPE_REMOTESWITCH = 7;
+	static private final int RECTYPE_WEATHERUNIT = 8;
 
 	// cfgUnit: sequence/index (1,..,7)  of comma separated vars for the common part
-	static private final int REMOTE_SWITCH_DATA_SWITCH_TYPE = 1;
-	static private final int REMOTE_SWITCH_DATA_SYSTEM_CODE = 2;
-	static private final int REMOTE_SWITCH_DATA_DEVICE_CODE = 3;
 	static private final int UNITNAME = 4;
 	static private final int HOST = 5;
 	static private final int PORT = 6;
@@ -29,6 +31,15 @@ public class CreateCfgFromInputFile {
 	// cfgAlertUnitRemote:  sequence of comma separated vars
 	static private final int LCD_USEDFOR = 11;
 	static private final int LCD = 12;
+	
+	// cfgAlertUnit: 
+//	static private final int TP_USEDFOR = 13;		// Name Temperatur-Sensor (not used)
+	static private final int ALERT_TP = 14;				// Temperatur-Sensor
+//	static private final int HM_USEDFOR = 15;		// Name Rel.Luftfeuchtigkeits-Sensor (not used)
+	static private final int ALERT_HM = 16;				// Rel.Luftfeuchtigkeits-Sensor
+//	static private final int AL_USEDFOR = 17;		// Name Ambilight Senso (not used)
+	static private final int ALERT_AL = 18;				// Ambilight
+	static private final int ALERT_ALTHRESHOLD = 19;	// Ambilight
 
 	// cfgProtectUnit:  sequence of comma separated vars
 //	static private final int IR_USEDFOR =11;		// not used
@@ -43,15 +54,11 @@ public class CreateCfgFromInputFile {
 	static private final int HM = 20;				// Rel.Luftfeuchtigkeits-Sensor
 //	static private final int MD_USEDFOR = 21;		// Name IR Bewegungsmelder (not used)
 	static private final int MD = 22;				// IR Bewegungsmelder
-
-	// cfgEmail: sequence of comma separated vars
-	static private final int EMAIL_REQUESTED = 1;
-	static private final int EMAIL_HOST = 2;
-	static private final int EMAIL_PORT = 3;
-	static private final int USER = 4;
-	static private final int PASSWORD = 5;
-	static private final int SEND_FROM = 6;
-	static private final int SEND_TO = 7;
+//	static private final int VC_USEDFOR = 23;		// Name Rauchmelder-Sensor [Voltage/Current] (not used)
+	static private final int VC = 24;				// Voltage/Current
+	static private final int VC_VOLTAGE_THRESHOLD = 25; // Voltage Threshold Rauchmelder
+	static private final int VC_CURRENT_THRESHOLD_OK = 26; // Current Threshold Rauchmelder
+	static private final int VC_CURRENT_THRESHOLD_ALERT = 27; // Current Threshold Rauchmelder
 
 	// cfgAlertSignal:  sequence of comma separated vars
 	static private final int QUIET = 5;
@@ -60,27 +67,15 @@ public class CreateCfgFromInputFile {
 	static private final int ALERT_DURATION_FIRE = 11;
 	static private final int ALIVE_SEQUENCE = 13;
 
-	// cfgRemoteSwitch: sequence of comma separated vars
-	static private final int RS_NAME = 1;
-	static private final int RS_HOST = 2;
-	static private final int RS_PORT = 3;
-	static private final int RS_MB_USEDFOR = 4;
-	static private final int RS_MB = 5;
-	static private final int RS_RS_USEDFOR = 6;
-	static private final int RS_RS = 7;
-	static private final int RS_REPEAT = 8;
-	static private final int RS_SLEEP = 9;
-	
 	
 	// Configuration File Content as objects
 	private CfgAlertSignal cfgAlertSignal;
-	private CfgRemoteSwitch cfgRemoteSwitch;
 	private CfgAlertUnitRemote cfgAlertUnitRemote;
 	private List<CfgAlertUnit> cfgAlertUnitList = new ArrayList<CfgAlertUnit>();
 	private List<CfgProtectUnit> cfgProtectUnitList = new ArrayList<CfgProtectUnit>();
+	private List<CfgWeatherUnit> cfgWeatherUnitList = new ArrayList<CfgWeatherUnit>();
 	private List<CfgRemoteSwitchData> cfgRemoteSwitchDataList = new ArrayList<CfgRemoteSwitchData>();
-	private CfgEmail cfgEmail;
-	
+
 	
 	
 	// Constructor Parameter
@@ -96,6 +91,7 @@ public class CreateCfgFromInputFile {
 	 * @param configPathFileName - path and file name
 	 */
 	public CreateCfgFromInputFile(String configPathFileName) {
+		super();
 		this.configPathFileName = configPathFileName;
 		readParameter();
 	}
@@ -138,7 +134,7 @@ public class CreateCfgFromInputFile {
 				cfgRemoteSwitchDataList.add(createCfgRemoteSwitchData(cfgFile));
 				break;
 			case REC_TYPE_ALERTUNIT:
-//				3,AU Mobil,192.168.0.43,4223,Master,29,Summer,46
+//				3,AU Mobil,192.168.0.43,4223,Master,29,Summer,46,LCD68
 				cfgAlertUnitList.add(
 						new CfgAlertUnit(
 								createCfgRemoteSwitchData(cfgFile),
@@ -148,13 +144,19 @@ public class CreateCfgFromInputFile {
 								cfgFile.getInt(MB),
 								cfgFile.getString(MB_USEDFOR),
 								cfgFile.getInt(IO),
-								cfgFile.getString(IO_USEDFOR))
+								cfgFile.getString(IO_USEDFOR),
+								cfgFile.getInt(LCD),
+								cfgFile.getString(LCD_USEDFOR),
+								cfgFile.getInt(ALERT_TP),
+								cfgFile.getInt(ALERT_HM),
+								cfgFile.getInt(ALERT_AL),
+								cfgFile.getShort(ALERT_ALTHRESHOLD))
 						);
 				cfgRemoteSwitchDataList.add(createCfgRemoteSwitchData(cfgFile));
 				break;
 			case RECTYPE_PROTECTUNIT:
-//				  1        2         3    4      5  6             7  8               9 10  11          12 13         14 15                   16
-//				4,PU Mobil,localhost,4223,Master,30,Kontaktsensor,51,Bewegungssensor,0,400,Wassermelder,0,Temperatur,53,Rel.Luftfeuchtigkeit,56
+//				  1        2         3    4      5  6             7  8               9 10  11          12 13         14 15                   16 17                 18
+//				4,PU Mobil,localhost,4223,Master,30,Kontaktsensor,51,Bewegungssensor,0,400,Wassermelder,0,Temperatur,53,Rel.Luftfeuchtigkeit,56,IR Bewegungsmelder,0,Rauchmelder,1,14,30,300
 				cfgProtectUnitList.add(
 						new CfgProtectUnit(
 								createCfgRemoteSwitchData(cfgFile),
@@ -171,58 +173,45 @@ public class CreateCfgFromInputFile {
 								cfgFile.getShort(AI_VOLTAGE_THRESHOLD),
 								cfgFile.getInteger(TP),
 								cfgFile.getInteger(HM),
-								cfgFile.getInteger(MD)
+								cfgFile.getInteger(MD),
+								cfgFile.getInteger(VC),
+								cfgFile.getShort(VC_VOLTAGE_THRESHOLD),
+								cfgFile.getShort(VC_CURRENT_THRESHOLD_OK),
+								cfgFile.getShort(VC_CURRENT_THRESHOLD_ALERT)
 								)
 						
 						);
 				cfgRemoteSwitchDataList.add(createCfgRemoteSwitchData(cfgFile));
 				break;
-			case RECTYPE_EMAIL:
-//				5,0,smtp.1und1.de,25,kabumobil@online.de,KVrF92V8RBiGXs0f4ghfz2be2,kabuman@online.de,kabumobil@online.de,kabuman@online.de,karsten.buchmann@online.de
-				String[] sendTo = new String[cfgFile.getVars().length - SEND_TO];
-				int j = 0;
-				for (int i = SEND_TO; i < cfgFile.getVars().length; i++) {
-					sendTo[j++] = cfgFile.getString(i);
-				}
-				cfgEmail = new CfgEmail(
-						cfgFile.getBoolean(EMAIL_REQUESTED),
-						cfgFile.getString(EMAIL_HOST),
-						cfgFile.getInt(EMAIL_PORT),
-						cfgFile.getString(USER),
-						cfgFile.getString(PASSWORD),
-						cfgFile.getString(SEND_FROM),
-						sendTo);
+
+			case RECTYPE_WEATHERUNIT:
+//				  1        2         3    4      5  6             7  8               9 10  11          12 13         14 15                   16
+//				4,WU Outside,localhost,4223
+				cfgWeatherUnitList.add(
+						new CfgWeatherUnit(
+								createCfgRemoteSwitchData(cfgFile),
+								cfgFile.getString(HOST),
+								cfgFile.getInt(PORT),
+								cfgFile.getString(UNITNAME)
+								)
+						
+						);
+				cfgRemoteSwitchDataList.add(createCfgRemoteSwitchData(cfgFile));
 				break;
 
-			case RECTYPE_REMOTESWITCH:
-//				  1             2         3    4      5  6             7  8  9
-//				7,Remote Switch,localhost,4223,Master,60,Remote Switch,63,50,2000
-				cfgRemoteSwitch = 
-						new CfgRemoteSwitch(
-								cfgFile.getString(RS_HOST),
-								cfgFile.getInt(RS_PORT),
-								cfgFile.getString(RS_NAME),
-								cfgFile.getInt(RS_MB),
-								cfgFile.getString(RS_MB_USEDFOR),
-								cfgFile.getInt(RS_RS),
-								cfgFile.getString(RS_RS_USEDFOR),
-								cfgFile.getShort(RS_REPEAT),
-								cfgFile.getLong(RS_SLEEP));
-				break;
 			default:
+				createStdCfg(cfgFile);
 				break;
 			}
 		}
 	}
 
-
-	private CfgRemoteSwitchData createCfgRemoteSwitchData(ConfigFileReader cfgFile){
-		return new CfgRemoteSwitchData(
-				cfgFile.getShort(REMOTE_SWITCH_DATA_SWITCH_TYPE),
-				cfgFile.getLong(REMOTE_SWITCH_DATA_SYSTEM_CODE),
-				cfgFile.getShort(REMOTE_SWITCH_DATA_DEVICE_CODE));
+	public List<CfgRemoteSwitchData> getCfgRemoteSwitchDataList() {
+		return cfgRemoteSwitchDataList;
 	}
-	
+
+
+
 	public CfgAlertUnitRemote getCfgAlertUnitRemote() {
 		return cfgAlertUnitRemote;
 	}
@@ -238,10 +227,6 @@ public class CreateCfgFromInputFile {
 	}
 
 
-	public CfgEmail getCfgEmail() {
-		return cfgEmail;
-	}
-
 	public CfgAlertSignal getCfgAlertSignal() {
 		return cfgAlertSignal;
 	}
@@ -250,12 +235,9 @@ public class CreateCfgFromInputFile {
 		this.cfgAlertSignal = cfgAlertSignal;
 	}
 
-	public CfgRemoteSwitch getCfgRemoteSwitch() {
-		return cfgRemoteSwitch;
+	public List<CfgWeatherUnit> getCfgWeatherUnitList() {
+		return cfgWeatherUnitList;
 	}
 
-	public List<CfgRemoteSwitchData> getCfgRemoteSwitchDataList() {
-		return cfgRemoteSwitchDataList;
-	}
 
 }

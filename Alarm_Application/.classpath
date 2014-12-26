@@ -6,5 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/Tinkerforge_Services"/>
 	<classpathentry kind="lib" path="/TinkerForge/Tinkerforge.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Karsten Buchmann/Git-Projects/tinkerforge/Mockito/mockito-all-1.9.5.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Tinkerforge_LCD"/>
 	<classpathentry kind="output" path=""/>
 </classpath>

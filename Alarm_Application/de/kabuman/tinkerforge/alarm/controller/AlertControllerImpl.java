@@ -8,10 +8,11 @@ import com.tinkerforge.BrickletLCD20x4;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
+import de.kabuman.common.services.DateTimeService;
 import de.kabuman.common.services.EmailServiceImpl;
-import de.kabuman.common.services.FormatterService;
+import de.kabuman.common.services.LogController;
+import de.kabuman.common.services.LogControllerImpl;
 import de.kabuman.tinkerforge.alarm.config.CfgAlertSignal;
-import de.kabuman.tinkerforge.alarm.config.CfgEmail;
 import de.kabuman.tinkerforge.alarm.threads.AlertIntervallObserverImpl;
 import de.kabuman.tinkerforge.alarm.threads.AlertObserver;
 import de.kabuman.tinkerforge.alarm.threads.AlertObserverImpl;
@@ -20,6 +21,10 @@ import de.kabuman.tinkerforge.alarm.threads.LedObserverImpl;
 import de.kabuman.tinkerforge.alarm.units.AlertUnit;
 import de.kabuman.tinkerforge.alarm.units.ProtectUnit;
 import de.kabuman.tinkerforge.alarm.units.Unit;
+import de.kabuman.tinkerforge.screencontroller.ScreenControllerImpl;
+import de.kabuman.tinkerforge.services.config.CfgEmail;
+import de.kabuman.tinkerforge.services.controller.RemoteSwitchController;
+import de.kabuman.tinkerforge.services.controller.RemoteSwitchControllerImpl;
 
 /**
  * Implementation of Alert Controller
@@ -132,6 +137,19 @@ public class AlertControllerImpl implements AlertController {
 		// Start Observer to create Alarm Signal
 		new AlertIntervallObserverImpl(this,alertType);
 		
+		if (alarmDisplay != null){
+			try {
+				displayAlert();
+			} catch (TimeoutException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NotConnectedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		
 	}
 	
 	private void sendEmail(String text){
@@ -178,17 +196,17 @@ public class AlertControllerImpl implements AlertController {
 	 * @see de.kabuman.tinkerforge.alarm.controller.AlertController#startAlert()
 	 */
 	public void startAlert(){
-		if (alarmDisplay != null){
-			try {
-				displayAlert();
-			} catch (TimeoutException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (NotConnectedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+//		if (alarmDisplay != null){
+//			try {
+//				displayAlert();
+//			} catch (TimeoutException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			} catch (NotConnectedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
 		
 		// Remote Switch Alert
 		if  (!cfgAlertSignal.isQuiet()){
@@ -235,18 +253,32 @@ public class AlertControllerImpl implements AlertController {
 	}
 
 	private void displayMessages(String msg){
+		ScreenControllerImpl sc = null;
+		
+		// Wait until ScreenController is available (Alert comes during the start phase of the alarm application)
+		do {
+			sc = ScreenControllerImpl.getInstance();
+		} while (sc == null);
 		try {
-			alarmDisplay.clearDisplay();
-			alarmDisplay.backlightOn();
-			Date date = new Date();
-			alarmDisplay.writeLine((short)0, (short)0, FormatterService.getDateDDMMYYYY(date) + "  " + FormatterService.getDateHHMM(date));
-			alarmDisplay.writeLine((short)1, (short)0, protectUnit.getUnitName());
-			alarmDisplay.writeLine((short)2, (short)0, sensorName);
-			alarmDisplay.writeLine((short)3, (short)0, msg);
-			messageShown = true;
-		} catch (Exception e) {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		// Activate Alarm Screen
+		int screenId = sc.getFreeScreenId();
+		
+		sc.addMaskLine(screenId, 0, "    Alarm   "+DateTimeService.DF_TIME_M.format(new Date()));
+		sc.addMaskLine(screenId, 1, protectUnit.getUnitName());
+		sc.addMaskLine(screenId, 2, sensorName);
+		sc.addMaskLine(screenId, 3, msg);
+		
+		sc.addNewScreenToSequence(screenId);
+		sc.activateAutoSwitchBackToDefaultScreen(false);
+		sc.assignLcdButton3ToScreenId(screenId);
+		sc.activateScreen(screenId, Boolean.TRUE, null);
+		System.out.println("AlertController: new Screen="+screenId);
 	}
 	
 	private void resetAlarmDisplay(){

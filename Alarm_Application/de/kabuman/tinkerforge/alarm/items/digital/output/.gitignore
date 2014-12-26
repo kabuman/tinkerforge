@@ -10,3 +10,10 @@
 /WaterSensorItem.class
 /WaterSensorItemImpl$1.class
 /WaterSensorItemImpl.class
+/DisplayTemperatureImpl.class
+/SmokeSensorItem.class
+/SmokeSensorItemImpl.class
+/SmokeVoltageSensorItemImpl.class
+/SmokeVoltageSensorItem.class
+/SmokeCurrentSensorItem.class
+/SmokeCurrentSensorItemImpl.class

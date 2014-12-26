@@ -1,9 +1,8 @@
 package de.kabuman.tinkerforge.alarm.units;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
+import java.util.Date;
 
-import com.tinkerforge.AlreadyConnectedException;
 import com.tinkerforge.BrickMaster;
 import com.tinkerforge.BrickletAnalogIn;
 import com.tinkerforge.BrickletDistanceIR;
@@ -12,16 +11,14 @@ import com.tinkerforge.BrickletIO4;
 import com.tinkerforge.BrickletMotionDetector;
 import com.tinkerforge.BrickletRemoteSwitch;
 import com.tinkerforge.BrickletTemperature;
-import com.tinkerforge.IPConnection;
+import com.tinkerforge.BrickletVoltageCurrent;
+import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
-import de.kabuman.common.services.InetService;
+import de.kabuman.common.services.FormatterService;
+import de.kabuman.common.services.LogControllerImpl;
 import de.kabuman.tinkerforge.alarm.config.CfgProtectUnit;
 import de.kabuman.tinkerforge.alarm.controller.AlertControllerImpl;
-import de.kabuman.tinkerforge.alarm.controller.LogController;
-import de.kabuman.tinkerforge.alarm.controller.LogControllerImpl;
-import de.kabuman.tinkerforge.alarm.controller.RemoteSwitchController;
-import de.kabuman.tinkerforge.alarm.controller.RemoteSwitchControllerImpl;
 import de.kabuman.tinkerforge.alarm.items.digital.input.HumiditySensorItem;
 import de.kabuman.tinkerforge.alarm.items.digital.input.HumiditySensorItemImpl;
 import de.kabuman.tinkerforge.alarm.items.digital.input.OpenSensorItem;
@@ -35,50 +32,61 @@ import de.kabuman.tinkerforge.alarm.items.digital.output.MotionSensorItem;
 import de.kabuman.tinkerforge.alarm.items.digital.output.MotionSensorItemImpl;
 import de.kabuman.tinkerforge.alarm.items.digital.output.OutputIO4ItemImpl;
 import de.kabuman.tinkerforge.alarm.items.digital.output.OutputItem;
+import de.kabuman.tinkerforge.alarm.items.digital.output.SmokeCurrentSensorItemImpl;
+import de.kabuman.tinkerforge.alarm.items.digital.output.SmokeSensorItem;
+import de.kabuman.tinkerforge.alarm.items.digital.output.SmokeVoltageSensorItemImpl;
 import de.kabuman.tinkerforge.alarm.items.digital.output.WaterSensorItem;
 import de.kabuman.tinkerforge.alarm.items.digital.output.WaterSensorItemImpl;
 import de.kabuman.tinkerforge.alarm.threads.LedObserver;
 import de.kabuman.tinkerforge.alarm.threads.LedObserverImpl;
-import de.kabuman.tinkerforge.services.ConnectServiceImpl;
+import de.kabuman.tinkerforge.services.connect.TfConnectService;
+import de.kabuman.tinkerforge.services.connect.TfStackCallbackApp;
+import de.kabuman.tinkerforge.services.controller.RemoteSwitchControllerImpl;
 
-public class ProtectUnitImpl implements ProtectUnit{
-	IPConnection ipcon;
+public class ProtectUnitImpl extends AbstractUnit implements ProtectUnit, TfStackCallbackApp{
 	
-	// Unit
+	// Tinkerforge Stack & Connection
+    private ProtectUnitTfStackImpl tfStack = null;
+    private TfConnectService tfConnectService = null;
+
+	// Devices
 	private BrickMaster alarmMaster;
+	private BrickletIO4 openSensor;
+	private BrickletDistanceIR motionSensor = null;
+	private BrickletMotionDetector motionDetection = null;
+	private BrickletAnalogIn waterSensor = null;
+	private BrickletTemperature temperatureSensor = null;
+	private BrickletHumidity humiditySensor = null;
+	private BrickletVoltageCurrent smokeSensor = null;
 	
 	// Items
 	private MotionSensorItem motionSensorItem = null;
 	private MotionDetectionItem motionDetectionItem = null;
 	private OpenSensorItem openSensorItem = null; 
 	private WaterSensorItem waterSensorItem = null;
+	private SmokeSensorItem smokeVoltageSensorItem = null;
+	private SmokeSensorItem smokeCurrentSensorItem = null;
 	private OutputItem ledItem = null;
 	private OutputItem beeperItem = null;
 
 	// Open Sensor, LED, Beeper
-	private BrickletIO4 openSensor;
 	private final long openSensorDebounce = 500l;   // 100 l  (for Long)
 	private final short openSensorInterrupt = 0;
 
 	// Motion Sensor
-	private BrickletDistanceIR motionSensor = null;
 	private final long motionSensorDebounce = MotionSensorItem.DEBOUNCE_PERIOD_STANDARD;		// msec. z.B.: 100l  (100 long)
 	
-	// IR Bewegungsmelder
-	// Motion Sensor
-	private BrickletMotionDetector motionDetection = null;
-	
 	// Water Sensor
-	private BrickletAnalogIn waterSensor = null;
 	private final long waterSensorDebounce = 100l;   // 100 l  (for Long)
 	
+	// Smoke Sensor
+	private final long smokeSensorDebounce = SmokeSensorItem.DEBOUNCE_PERIOD_STANDARD;
+	
 	// Temperature Sensor
-	private BrickletTemperature temperatureSensor = null;
 	private TemperatureSensorItem temperatureSensorItem = null;
 	private long temeperatureSensorCallback = 1000;
 	
 	// Humidity Sensor
-	private BrickletHumidity humiditySensor = null;
 	private HumiditySensorItem humiditySensorItem = null;
 	private long humiditySensorCallback = 1000;
 	
@@ -90,12 +98,14 @@ public class ProtectUnitImpl implements ProtectUnit{
 	private final short resetSwitchInterrupt = 3;
 	private final long resetSwitchDebounce = 100l;   // 100 l  (for Long)
 	
-	// Services
-	private InetService inetService = new InetService();
-	private RemoteSwitchController remoteSwitchController = RemoteSwitchControllerImpl.getInstance();
-	
 	// Parameter
 	private CfgProtectUnit cfgProtectUnit;
+
+    // Process vars
+	private boolean firstConnect = true;
+	private boolean unitActivated = false;
+	private boolean connected = false;
+	
 	
 	/**
 	 * Instantiates Protect Unit with
@@ -110,227 +120,69 @@ public class ProtectUnitImpl implements ProtectUnit{
 	 */
 	public ProtectUnitImpl(CfgProtectUnit cfgProtectUnit){
 		this.cfgProtectUnit = cfgProtectUnit;
-		 
-		connect();
-	}
-
-	/**
-	 * Creates Connection and connects Bricks and Bricklets to it
-	 * 
-	 * @return boolean - true: if successfully connected / false: if not
-	 */
-	private boolean connectBrickLets(){
-		LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "Connect", "Try to connect to host="+cfgProtectUnit.getHost()+" port="+cfgProtectUnit.getPort());
-
-		// Connection
-		try {
-			ipcon = ConnectServiceImpl.getInstance().createConnectE(inetService.resolveURL(cfgProtectUnit.getHost()), cfgProtectUnit.getPort());
-			ipcon.setTimeout(20000);
-			ipcon.setAutoReconnect(true);
-		} catch (UnknownHostException e) {
-			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(),"connectBrickLets","createConnectE: " +e.toString());
-			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(),"connectBrickLets","host="+cfgProtectUnit.getHost()+" inetService: URL=" + inetService.getURL()+" IP="+inetService.getIP());
-			return false;
-		} catch (AlreadyConnectedException e) {
-			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(),"connectBrickLets","createConnectE: " +e.toString());
-		} catch (IOException e) {
-			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(),"connectBrickLets","createConnectE: " +e.toString());
-			return false;
-		} catch (Exception e) {
-			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(),"connectBrickLets","createConnectE: " +e.toString());
-			return false;
-		}
-		LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(),"connectBrickLets","Connected to host="+cfgProtectUnit.getHost()+" inetService: URL=" + inetService.getURL()+" IP="+inetService.getIP());
 		
-		
-		// Master Brick
-		try {
-			alarmMaster = (BrickMaster) ConnectServiceImpl.getInstance().createAndConnect(ipcon, cfgProtectUnit.getMb(), cfgProtectUnit.getUnitName()+": "+"Master", 6.5);
-		} catch (Exception e) {
-			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(),"connectBrickLets","BrickMaster: " +e.toString());
-			return false;
-		}
-
-		
-		// Distance Infrarot: Motion Sensor
-		if (cfgProtectUnit.getIr() != null && cfgProtectUnit.getIr() > 0){
-			try {
-				motionSensor = (BrickletDistanceIR) ConnectServiceImpl.getInstance().createAndConnect(ipcon, cfgProtectUnit.getIr(), cfgProtectUnit.getUnitName()+": Bewegungssensor");
-			} catch (Exception e) {
-				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "Connect", "Motion Sensor failed. Exception="+e.toString());
-				return false;
-			}
-		}
-		return true;
+	    tfStack = ((ProtectUnitTfStackImpl)new ProtectUnitTfStackImpl(this, cfgProtectUnit));
+	    
+		tfConnectService = new TfConnectService(cfgProtectUnit.getHost(), cfgProtectUnit.getPort(), null, tfStack);
 		
 	}
-	
-	/**
-	 * Installs  <br>
-	 * - the motion sensor  (if BrickletDistanceIR exists) <br>
-	 * - the open sensor  	(if BrickletIO4 exists)<br>
-	 * - the water sensor  	(if BrickletAnalogIn exits)<br>
-	 * - the LED  			(if BrickletIO4 exits)  <br>
-	 * - the Reset Switch 	(if BrickletIO4 exits)  <br>
-	 * - the Alert Beeper 	(if BrickletIO4 exits)  <br>
-	 * based on the already connected  Bricklets 
-	 */
-	private void connectSensors(){
-		if (motionSensor != null){
-			motionSensorItem = new MotionSensorItemImpl(
-					this,
-					motionSensor,
-					motionSensorDebounce,
-					MotionSensorItem.OPTION_SMALLER,
-					cfgProtectUnit.getDistance());
-		}
-		
-		// IO4: Open Sensor, LED, Beeper, Reset Switch
-		if (cfgProtectUnit.getIo() > 0){
-			try {
-				openSensor = (BrickletIO4) ConnectServiceImpl.getInstance().createAndConnect(ipcon, cfgProtectUnit.getIo(), cfgProtectUnit.getUnitName()+": Kontaktsensor");
 
-				openSensorItem = new OpenSensorItemImpl(
-						this,
-						openSensor,
-						openSensorDebounce,					// Debounce Period
-						openSensorInterrupt);
-
-				new ResetSwitchItemImpl(
-						cfgProtectUnit.getUnitName(),
-						openSensor,
-						resetSwitchDebounce,					// Debounce Period
-						resetSwitchInterrupt,
-						true);
-
-				ledItem = new OutputIO4ItemImpl(
-						openSensor,
-						ledInterrupt,
-						null);
-
-				beeperItem = new OutputIO4ItemImpl(
-						openSensor,
-						beeperInterrupt,
-						null);
-			} catch (TimeoutException e) {
-				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "connectBrickLets", "Open Sensor failed. Timeout");
-			}
-		}
-		
-		// IR Bewegungsmelder
-		if (cfgProtectUnit.getMd() > 0){
-			try {
-				motionDetection = (BrickletMotionDetector) ConnectServiceImpl.getInstance().createAndConnect(ipcon, cfgProtectUnit.getMd(), cfgProtectUnit.getUnitName()+": IR Bewegungsmelder");
-				motionDetectionItem = new MotionDetectionItemImpl(
-						this,
-						motionDetection);
-			} catch (TimeoutException e) {
-				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "Connect", "Water Sensor failed. Timeout");
-			}
-		}
-
-		// ai: Water Sensor
-		if (cfgProtectUnit.getAi() > 0){
-			try {
-				waterSensor = (BrickletAnalogIn) ConnectServiceImpl.getInstance().createAndConnect(ipcon, cfgProtectUnit.getAi(), cfgProtectUnit.getUnitName()+": Wassersensor");
-
-				waterSensorItem = new WaterSensorItemImpl(
-						this,
-						waterSensor,
-						waterSensorDebounce,
-						WaterSensorItem.OPTION_GREATER,
-						cfgProtectUnit.getAiVoltageThreshold(),
-						false);
-			} catch (TimeoutException e) {
-				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "Connect", "Water Sensor failed. Timeout");
-			}
-		}
-		
-		// tp: Temperature Sensor
-		if (cfgProtectUnit.getTp() > 0){
-			try {
-				temperatureSensor = (BrickletTemperature) ConnectServiceImpl.getInstance().createAndConnect(ipcon, cfgProtectUnit.getTp(),cfgProtectUnit.getUnitName());
-				
-				temperatureSensorItem = new TemperatureSensorItemImpl(this, temperatureSensor, temeperatureSensorCallback);
-				
-			} catch (TimeoutException e) {
-				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "Connect", "Temperature Sensor failed. Timeout");
-			}
-		}
-		
-		// hm: Humidity Sensor
-		if (cfgProtectUnit.getHm() > 0){
-			try {
-				humiditySensor = (BrickletHumidity) ConnectServiceImpl.getInstance().createAndConnect(ipcon, cfgProtectUnit.getHm(),cfgProtectUnit.getUnitName());
-				
-				humiditySensorItem = new HumiditySensorItemImpl(this, humiditySensor, humiditySensorCallback);
-				
-			} catch (TimeoutException e) {
-				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "Connect", "Humidity Sensor failed. Timeout");
-			}
-		}
-		
-		LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "Connect", "successful");
-	}
-	
-	/**
-	 * Connects the whole Protect Unit
-	 * 
-	 * @return boolean - true: if successfully connected / false: if not
-	 */
-	private synchronized boolean  connect(){
-		if (connectBrickLets()){
-			connectSensors();
-			reset();
-			return true;
-		} else {
-			return false;
-		}
-	}
 	
 	/* (non-Javadoc)
 	 * @see de.kabuman.tinkerforge.alarm.units.ProtectUnit#activate()
 	 */
-	public synchronized void activateUnit(){
+	public void activateUnit(){
+		unitActivated = true;
+		
 		if (motionSensor != null){
 			motionSensorItem.activateMotionSensor();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "activateUnit", "motionSensorItem activated");
 		}
 		
 		if (motionDetection != null){
 			motionDetectionItem.activateMotionDetection();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "activateUnit", "motionDetectionItem activated");
 		}
 		
 		if (openSensor != null){
 			openSensorItem.activateOpenSensor();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "activateUnit", "openSensorItem activated");
 		}
 
 		if (temperatureSensor != null){
 			temperatureSensorItem.activateSensor();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "activateUnit", "temperatureSensorItem activated");
 		}
 
 		if (humiditySensor != null){
 			humiditySensorItem.activateSensor();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "activateUnit", "humiditySensorItem activated");
 		}
 		
 		if (waterSensor != null){
 			waterSensorItem.activateSensor();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "activateUnit", "waterSensorItem activated");
 		}
 		
-		if (AlertControllerImpl.getInstance().isOn()){
-			
-		} else {
-			
+		if (smokeSensor != null){
+			smokeVoltageSensorItem.activateSensor();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "activateUnit", "smokeVoltageSensorItem activated");
+
+			smokeCurrentSensorItem.activateSensor();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "activateUnit", "smokeCurrentSensorItem activated");
 		}
+		
 		
 		// confirm via LED
 		int ledSchema = (AlertControllerImpl.getInstance().isOn()) ? LedObserver.LED_ALARM_ON : LedObserver.LED_ALARM_OFF;
 		new LedObserverImpl(ledItem,ledSchema, getUnitName());
 	}
 	
+	
 	/* (non-Javadoc)
 	 * @see de.kabuman.tinkerforge.alarm.units.ProtectUnit#activateAlert(java.lang.String)
 	 */
-	public synchronized void activateAlert(String sensorName, int msgId, short alertType){
+	public void activateAlert(String sensorName, int msgId, short alertType){
 		// Trigger ALERT to Controller
 		AlertControllerImpl.getInstance().activateAlert(this, sensorName, msgId, alertType);
 		
@@ -345,9 +197,14 @@ public class ProtectUnitImpl implements ProtectUnit{
 		}
 	}
 	
+	
+	/* (non-Javadoc)
+	 * @see de.kabuman.tinkerforge.alarm.units.Unit#activateAlert()
+	 */
 	public void activateAlert(){
 		beeperItem.switchON();
 	}
+	
 	
 	/* (non-Javadoc)
 	 * @see de.kabuman.tinkerforge.alarm.units.Unit#deactivateAlert()
@@ -356,6 +213,7 @@ public class ProtectUnitImpl implements ProtectUnit{
 		beeperItem.switchOFF();
 	}
 
+	
 	/* (non-Javadoc)
 	 * @see de.kabuman.tinkerforge.alarm.units.Unit#reset()
 	 */
@@ -365,6 +223,7 @@ public class ProtectUnitImpl implements ProtectUnit{
 		openSensorItem.checkSensorOpened();
 	}
 	
+	
 	/* (non-Javadoc)
 	 * @see de.kabuman.tinkerforge.alarm.units.Unit#getBrickMaster()
 	 */
@@ -372,6 +231,7 @@ public class ProtectUnitImpl implements ProtectUnit{
 		return alarmMaster;
 	}
 
+	
 	/* (non-Javadoc)
 	 * @see de.kabuman.tinkerforge.alarm.units.Unit#getUnitName()
 	 */
@@ -379,6 +239,7 @@ public class ProtectUnitImpl implements ProtectUnit{
 		return cfgProtectUnit.getUnitName();
 	}
 
+	
 	/* (non-Javadoc)
 	 * @see de.kabuman.tinkerforge.alarm.units.ProtectUnit#getOpenSensorItem()
 	 */
@@ -386,81 +247,29 @@ public class ProtectUnitImpl implements ProtectUnit{
 		return openSensorItem;
 	}
 
+	
 	/* (non-Javadoc)
 	 * @see de.kabuman.tinkerforge.alarm.units.Unit#reconnect()
 	 */
 	public void reconnect() {
-		power(true);
-		remoteSwitchController.sleep(30000);
-		
-		try {
-			openSensorItem.removeListener();
-		} catch (Exception e) {
-		}
-		
-		// TODO - Implement removeListener
-//		motionSensorItem.removeListener();
-		
-		try {
-			ipcon.disconnect();
-		} catch (Exception e1) {
-		}
-		
-		if (getBrickMaster() != null){
-			try {
-				getBrickMaster().reset();
-			} catch (Exception e) {
-				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(),"reconnect","BrickMaster: " +e.toString());
-			}
-		}
-		
-		if (connectBrickLets()){
-			connectSensors();
-			activateUnit();
-			if (AlertControllerImpl.getInstance().isAlertOccurred()){
-				ledItem.switchON();
-			}
-			LogControllerImpl.getInstance().createUserLogMessage(cfgProtectUnit.getUnitName(),"Reconnect",LogController.MSG_UNIT_RECONNECTED);
-		} else {
-			alarmMaster = null;
-			LogControllerImpl.getInstance().createUserLogMessage(cfgProtectUnit.getUnitName(),"Reconnect",LogController.MSG_UNIT_RECONNECT_FAILED);
-		}
 	}
 
+	
 	/* (non-Javadoc)
 	 * @see de.kabuman.tinkerforge.alarm.units.Unit#isConnected()
 	 */
 	public boolean isConnected() {
-		if (alarmMaster == null){
-			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(),"isConnected()","alarmMaster = null detected. alarmMaster="+alarmMaster);
-			return false;
-		}
-		
-		try {
-			alarmMaster.getWifiStatus();
-		} catch (Exception e) {
-			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(),"isConnected()","alarmMaster.getWifiStatus(): " +e.toString());
-			return false;
-		}
-
-		try {
-			if (openSensor.getInterrupt() == 0){
-				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(),"isConnected()","openSensor.getInterrupt() = 0 detected");
-				return false;
-			}
-		} catch (Exception e) {
-			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(),"isConnected()","alarmSignal.getPortInterrupt('a'): " +e.toString());
-		}
-
-		return true;
+		return connected;
 	}
 
+	
 	/* (non-Javadoc)
 	 * @see de.kabuman.tinkerforge.alarm.units.Unit#getTemperatureSensorItem()
 	 */
 	public TemperatureSensorItem getTemperatureSensorItem() {
 		return temperatureSensorItem;
 	}
+	
 	
 	/* (non-Javadoc)
 	 * @see de.kabuman.tinkerforge.alarm.units.Unit#getHumiditySensorItem()
@@ -470,6 +279,7 @@ public class ProtectUnitImpl implements ProtectUnit{
 		return humiditySensorItem;
 	}
 
+	
 	@Override
 	public void power(boolean switchOn) {
 		if (cfgProtectUnit.getCfgRemoteSwitchData().getSwitchType()<=0){
@@ -480,11 +290,12 @@ public class ProtectUnitImpl implements ProtectUnit{
 		short switchTo = ( switchOn) ? BrickletRemoteSwitch.SWITCH_TO_ON : BrickletRemoteSwitch.SWITCH_TO_OFF;
 
 		LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(),"power(switchOn)","switchOn="+switchOn);
-		remoteSwitchController.switchPowerSecurely(
+		RemoteSwitchControllerImpl.getInstance().switchPowerSecurely(
 				cfgProtectUnit.getCfgRemoteSwitchData()
 				, switchTo);
 	}
 
+	
 	/* (non-Javadoc)
 	 * @see de.kabuman.tinkerforge.alarm.units.ProtectUnit#getAlertLEDItem()
 	 */
@@ -492,9 +303,264 @@ public class ProtectUnitImpl implements ProtectUnit{
 		return ledItem;
 	}
 
+	
+	/* (non-Javadoc)
+	 * @see de.kabuman.tinkerforge.alarm.units.ProtectUnit#getWaterSensorItem()
+	 */
 	public WaterSensorItem getWaterSensorItem() {
 		return waterSensorItem;
 	}
 
+	
+	/* (non-Javadoc)
+	 * @see de.kabuman.tinkerforge.alarm.units.ProtectUnit#getCfgProtectUnit()
+	 */
+	public CfgProtectUnit getCfgProtectUnit() {
+		return cfgProtectUnit;
+	}
+
+	
+	/**
+	 * Checks if all mandary BrickLets are available 
+	 */
+	private void checkRequiredTfStackBrickLets(){
+		boolean missing = false;
+		
+		if (tfStack.getAlarmMaster() == null){
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "checkRequiredTfStackBrickLets", "tfStack.getAlarmMaster required");
+			missing = true;
+		}
+		
+		if (tfStack.getOpenSensor() == null){
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "checkRequiredTfStackBrickLets", "tfStack.getOpenSensor required");
+			missing = true;
+		}
+
+		if (missing){
+			throw new IllegalArgumentException("See technical log for missing BrickLets");
+		}
+	}
+	
+	
+	/**
+	 * Handles first and reconnect 
+	 */
+	private void handleConnect(){
+		checkRequiredTfStackBrickLets();
+		
+		alarmMaster = tfStack.getAlarmMaster();
+		motionDetection = tfStack.getMotionDetection();
+		waterSensor = tfStack.getWaterSensor();
+		smokeSensor = tfStack.getSmokeSensor();
+		motionSensor = tfStack.getMotionSensor();
+		temperatureSensor = tfStack.getTemperatureSensor();
+		humiditySensor = tfStack.getHumiditySensor();
+		openSensor = tfStack.getOpenSensor();
+
+		// OpenSensor and dependants: OpenSensorItem, ResetSwitch, LedItem, BeeperItem
+		openSensorItem = new OpenSensorItemImpl(
+				this,
+				openSensor,
+				openSensorDebounce,					// Debounce Period
+				openSensorInterrupt);
+
+		new ResetSwitchItemImpl(
+				cfgProtectUnit.getUnitName(),
+				openSensor,
+				resetSwitchDebounce,					// Debounce Period
+				resetSwitchInterrupt,
+				true);
+
+		ledItem = new OutputIO4ItemImpl(
+				openSensor,
+				ledInterrupt,
+				null);
+
+		beeperItem = new OutputIO4ItemImpl(
+				openSensor,
+				beeperInterrupt,
+				null);
+
+		LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), 
+				"handleConnect", "openSensorItem created (incl. dependant ResetSwitchItemImpl, ledItem, beeperItem)");
+		
+		
+		if (motionSensor != null){
+			motionSensorItem = new MotionSensorItemImpl(
+					this,
+					motionSensor,
+					motionSensorDebounce,
+					MotionSensorItem.OPTION_SMALLER,
+					cfgProtectUnit.getDistance());
+			motionSensorItem.activateMotionSensor();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "motionSensorItem created");
+		} else {
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "motionSensorItem NOT created");
+		}
+
+		
+		// IR Bewegungsmelder
+		if (motionDetection != null){
+			motionDetectionItem = new MotionDetectionItemImpl(
+					this,
+					motionDetection);
+			motionDetectionItem.activateMotionDetection();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "motionDetectionItem created");
+		} else {
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "motionDetectionItem NOT created");
+		}
+
+		// ai: Water Sensor
+		if (waterSensor != null){
+			storePreviousInstance(waterSensorItem);
+			waterSensorItem = new WaterSensorItemImpl(
+					this,
+					waterSensor,
+					waterSensorDebounce,
+					WaterSensorItem.OPTION_GREATER,
+					cfgProtectUnit.getAiVoltageThreshold(),
+					false);
+			waterSensorItem.activateSensor();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "waterSensorItem created");
+			if (replacePreviousInstance(waterSensorItem)){
+				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "waterSensorItem activated and replaced (ScreenController)");
+			}
+		} else {
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "waterSensorItem NOT created");
+		}
+		
+		// vc: Smoke Voltage Sensor (Betriebsspannung vorhanden?)
+		if (smokeSensor != null){
+			storePreviousInstance(smokeVoltageSensorItem);
+			smokeVoltageSensorItem = new SmokeVoltageSensorItemImpl(
+					this,
+					smokeSensor,
+					smokeSensorDebounce,
+					SmokeSensorItem.OPTION_SMALLER,
+					cfgProtectUnit.getVcVoltageThreshold(),
+					false);
+			smokeVoltageSensorItem.activateSensor();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "smokeVoltageSensorItem created");
+			if (replacePreviousInstance(waterSensorItem)){
+				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "smokeVoltageSensorItem activated and replaced (ScreenController)");
+			}
+		} else {
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "smokeVoltageSensorItem NOT created");
+		}
+		
+		// vc: Smoke Current Sensor (Rauchmelder ausgelöst?)
+		if (smokeSensor != null){
+			storePreviousInstance(smokeCurrentSensorItem);
+			smokeCurrentSensorItem = new SmokeCurrentSensorItemImpl(
+					this,
+					smokeSensor,
+					smokeSensorDebounce,
+					SmokeSensorItem.OPTION_GREATER,
+					cfgProtectUnit.getVcCurrentThresholdAlert(),
+					false);
+			smokeCurrentSensorItem.activateSensor();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "smokeCurrentSensorItem created");
+			if (replacePreviousInstance(waterSensorItem)){
+				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "smokeCurrentSensorItem activated and replaced (ScreenController)");
+			}
+		} else {
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "smokeCurrentSensorItem NOT created");
+		}
+		
+		// tp: Temperature Sensor
+		if (temperatureSensor != null){
+			storePreviousInstance(temperatureSensorItem);
+			temperatureSensorItem = new TemperatureSensorItemImpl(this, temperatureSensor, temeperatureSensorCallback);
+			temperatureSensorItem.activateSensor();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "temperatureSensorItem created");
+			if (replacePreviousInstance(temperatureSensorItem)){
+				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "temperatureSensorItem activated and replaced (ScreenController)");
+			}
+		} else {
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "temperatureSensorItem NOT created");
+		}
+		
+		// hm: Humidity Sensor
+		if (humiditySensor != null){
+			storePreviousInstance(humiditySensorItem);
+			humiditySensorItem = new HumiditySensorItemImpl(this, humiditySensor, humiditySensorCallback);
+			humiditySensorItem.activateSensor();
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "humiditySensorItem created");
+			if (replacePreviousInstance(humiditySensorItem)){
+				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "humiditySensorItem activated and replaced (ScreenController)");
+			}
+		} else {
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "humiditySensorItem NOT created");
+		}
+		
+
+		reset();
+		LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "Reset of alert beeper and alert LED");
+		
+		if (unitActivated){
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "'activateUnit() triggered");
+			activateUnit();
+		} else {
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "handleConnect", "'activateUnit() NOT triggered");
+		}
+	}
+	
+	
+	/**
+	 * Logs Wifi parameter
+	 */
+	private void logConnect(){
+		try {
+			if (tfStack.getAlarmMaster().isWifiPresent()){
+				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "AlertUnitMobileImpl", " Wifi Key="+tfStack.getAlarmMaster().getLongWifiKey());
+				LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "AlertUnitMobileImpl", " Wifi BufferInfo="+tfStack.getAlarmMaster().getWifiBufferInfo());
+			}
+		} catch (TimeoutException | NotConnectedException e) {
+			e.printStackTrace();
+		}
+		LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "AlertUnitMobileImpl", "Host="+tfConnectService.getHost()+" Port="+tfConnectService.getPort()+" IP="+tfConnectService.getIP());
+	}
+	
+	
+	
+	/* (non-Javadoc)
+	 * @see de.kabuman.tinkerforge.services.connect.TfStackCallbackApp#tfStackReConnected()
+	 */
+	@Override
+	public synchronized void tfStackReConnected() {
+		System.out.println(  FormatterService.getDate(new Date())+":  "+  this.getUnitName()+" connection timeout="+tfConnectService.getIpcon().getTimeout());
+		if (firstConnect){
+			firstConnect = false;
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "tfStackReConnected", "TfStack firstly connected");
+			logConnect();
+			handleConnect();
+		} else {
+			LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "tfStackReConnected", "TfStack reconnected");
+			handleConnect();
+			
+			if (AlertControllerImpl.getInstance().isAlertOccurred()){
+				ledItem.switchON();
+			}
+			
+		}
+		LogControllerImpl.getInstance().createTechnicalLogMessage(cfgProtectUnit.getUnitName(), "tfStackReConnected", "Connection timeout="+tfConnectService.getIpcon().getTimeout());
+		connected = true;
+	}
+
+	
+	/* (non-Javadoc)
+	 * @see de.kabuman.tinkerforge.services.connect.TfStackCallbackApp#tfStackDisconnected()
+	 */
+	@Override
+	public synchronized void tfStackDisconnected() {
+		connected = false;
+		System.out.println(this.getUnitName()+" disconnected");
+		
+	}
+
+	@Override
+	public String getTfStackName() {
+		return getUnitName();
+	}
 
 }

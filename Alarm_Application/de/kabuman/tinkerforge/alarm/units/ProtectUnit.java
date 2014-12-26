@@ -1,5 +1,6 @@
 package de.kabuman.tinkerforge.alarm.units;
 
+import de.kabuman.tinkerforge.alarm.config.CfgProtectUnit;
 import de.kabuman.tinkerforge.alarm.items.digital.input.OpenSensorItem;
 import de.kabuman.tinkerforge.alarm.items.digital.output.OutputItem;
 import de.kabuman.tinkerforge.alarm.items.digital.output.WaterSensorItem;
@@ -39,6 +40,15 @@ public interface ProtectUnit extends Unit{
 	 * @return WaterSensorItem - the water sensor object
 	 */
 	WaterSensorItem getWaterSensorItem();
+	
+	
+	/**
+	 * Returns the configuration of the protection unit comming from external config file
+	 * 
+	 * @return CfgProtectUnit - the configuration of the protection unit
+	 */
+	CfgProtectUnit getCfgProtectUnit();
+
 
 
 }

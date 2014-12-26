@@ -1,6 +1,6 @@
 package de.kabuman.tinkerforge.alarm.threads;
 
-import de.kabuman.tinkerforge.alarm.controller.LogControllerImpl;
+import de.kabuman.common.services.LogControllerImpl;
 import de.kabuman.tinkerforge.alarm.items.digital.output.OutputIO16ItemImpl;
 import de.kabuman.tinkerforge.alarm.items.digital.output.OutputItem;
 
@@ -33,7 +33,7 @@ public class LedObserverImpl extends Thread implements LedObserver{
 	 */
 	@Override
 	public void run() {
-		LogControllerImpl.getInstance().createTechnicalLogMessage("LedObserver", "Start unit="+unitName, "ledSchema="+ledSchema);
+		LogControllerImpl.getInstance().createTechnicalLogMessage(unitName, "LedObserver", "Start: ledSchema="+ledSchema);
 
 		switch (ledSchema) {
 		case LED_ALARM_ON:
@@ -71,7 +71,7 @@ public class LedObserverImpl extends Thread implements LedObserver{
 			break;
 		}
 		
-		LogControllerImpl.getInstance().createTechnicalLogMessage("LedObserver", "End unit="+unitName, "ledSchema="+ledSchema);
+		LogControllerImpl.getInstance().createTechnicalLogMessage(unitName, "LedObserver", "End: ledSchema="+ledSchema);
 	}
 
 	private void on(Object object){

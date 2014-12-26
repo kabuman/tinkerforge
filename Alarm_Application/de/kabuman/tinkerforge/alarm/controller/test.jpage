@@ -17,3 +17,49 @@ char c = 'A';
 int i = (int) c;
 System.out.println(i);
 
+DateFormat simpleDateFormat = new SimpleDateFormat("mm.dd.yyyy");
+DateFormat simpleTimeFormat = new SimpleDateFormat("kk.mm");
+DateFormat simpleDateTimeFormat = new SimpleDateFormat("mm.dd.yyyy hh:mm:ss");
+
+//Date d = simpleDateFormat.parse("01.01.2000");
+Date d = simpleDateFormat.parse("01.01.00 13:20:59");
+System.out.println(d);
+System.out.println(simpleDateTimeFormat.format(d));
+
+//DateFormat simpleDateTimeFormat = new SimpleDateFormat("dd.MM.yy hh:mm:ss");
+DateFormat simpleDateTimeFormat = new SimpleDateFormat("dd.MM.yy hh:mm:ss");
+Date d = simpleDateTimeFormat.parse("01.06.2014 07:46:30");
+System.out.println(d);
+System.out.println(simpleDateTimeFormat.format(d));
+Date cdate = new Date();
+System.out.println(simpleDateTimeFormat.format(cdate));
+if (cdate.after(d)){
+	System.out.println("Aktuelles Datum ist älter");
+} else if (cdate.equals(d)){
+	System.out.println("Aktuelles Datum ist gleich!");
+} else {
+	System.out.println("Aktuelles Datum ist jünger");
+}
+
+
+ConfigFileReader r = new ConfigFileReader();
+r.setLine("01.06.2014 07:46:30,01.06.2014,12:59:00",",");
+System.out.println(r.getDateTime(0));
+System.out.println(r.getDate(1));
+System.out.println(r.getDate(1,new Date()));
+System.out.println(r.getTime(2));
+System.out.println(r.getTime(2,new Date()));
+
+
+DateFormat simpleDateTimeFormat = new SimpleDateFormat("dd.MM.yy hh:mm:ss");
+ConfigFileReader r = new ConfigFileReader();
+r.setLine("01.06.2014 07:46:30,02.06.2014 07:46:30",",");
+Date d1 = r.getDateTime(0);
+Date d2 = r.getDateTime(1);
+long result = d2.getTime() - d1.getTime();
+System.out.println(result/1000);
+		
+		
+Syntax error on token "int", Dimensions expected after this tokenSyntax error on token "int", Dimensions expected after this tokenSyntax error on token "int", Dimensions expected after this tokenList<int> myList = Arrays.asList(1,2,3);
+
+System.out.println(String.format("%ta",new Date()));

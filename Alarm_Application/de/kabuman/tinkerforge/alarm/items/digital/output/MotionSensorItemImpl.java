@@ -5,9 +5,9 @@ import com.tinkerforge.BrickletDistanceIR.DistanceReachedListener;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
+import de.kabuman.common.services.LogController;
+import de.kabuman.common.services.LogControllerImpl;
 import de.kabuman.tinkerforge.alarm.controller.AlertController;
-import de.kabuman.tinkerforge.alarm.controller.LogController;
-import de.kabuman.tinkerforge.alarm.controller.LogControllerImpl;
 import de.kabuman.tinkerforge.alarm.units.ProtectUnit;
 
 public class MotionSensorItemImpl implements MotionSensorItem {

@@ -12,7 +12,7 @@ public interface HumiditySensorItem extends Item{
 	 * To display: (double)getCurrentValue/10
 	 * @return int - the current humidity value
 	 */
-	int getCurrentValue();
+	double getCurrentValue();
 
 	/**
 	 * Deactivates the Sensor 

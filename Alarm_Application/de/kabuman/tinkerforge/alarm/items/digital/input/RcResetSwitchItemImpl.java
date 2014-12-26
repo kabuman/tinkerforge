@@ -2,8 +2,8 @@ package de.kabuman.tinkerforge.alarm.items.digital.input;
 
 import com.tinkerforge.BrickletIO16;
 
-import de.kabuman.tinkerforge.alarm.controller.LogController;
-import de.kabuman.tinkerforge.alarm.controller.LogControllerImpl;
+import de.kabuman.common.services.LogController;
+import de.kabuman.common.services.LogControllerImpl;
 import de.kabuman.tinkerforge.alarm.controller.ResetControllerImpl;
 
 public class RcResetSwitchItemImpl extends InputIO16ItemImpl {

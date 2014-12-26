@@ -3,6 +3,8 @@ package de.kabuman.tinkerforge.alarm.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.kabuman.common.services.LogController;
+import de.kabuman.common.services.LogControllerImpl;
 import de.kabuman.tinkerforge.alarm.AlarmAppl;
 import de.kabuman.tinkerforge.alarm.threads.LedObserver;
 import de.kabuman.tinkerforge.alarm.threads.LedObserverImpl;

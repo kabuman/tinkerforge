@@ -7,3 +7,6 @@
 /CfgRemoteSwitchData.class
 /CfgUnit.class
 /CreateCfgFromInputFile.class
+/CfgWeatherUnit.class
+/CfgMapUnit.class
+/CfgMapProtectUnit.class

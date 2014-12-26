@@ -1,8 +1,5 @@
 package de.kabuman.tinkerforge.alarm;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-
 import de.kabuman.common.services.CountDownService;
 import de.kabuman.common.services.CountDownServiceImpl;
 

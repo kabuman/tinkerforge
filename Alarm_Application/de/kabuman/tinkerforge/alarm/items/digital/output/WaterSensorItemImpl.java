@@ -4,15 +4,16 @@ import com.tinkerforge.BrickletAnalogIn;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
+import de.kabuman.common.services.LogController;
+import de.kabuman.common.services.LogControllerImpl;
 import de.kabuman.tinkerforge.alarm.controller.AlertController;
-import de.kabuman.tinkerforge.alarm.controller.LogController;
-import de.kabuman.tinkerforge.alarm.controller.LogControllerImpl;
 import de.kabuman.tinkerforge.alarm.items.digital.input.CallbackIntConsumer;
 import de.kabuman.tinkerforge.alarm.items.digital.input.ItemImpl;
 import de.kabuman.tinkerforge.alarm.items.digital.input.WaterCallbackListenerImpl;
 import de.kabuman.tinkerforge.alarm.units.ProtectUnit;
+import de.kabuman.tinkerforge.screencontroller.sources.ItemSourceToPullAlarm;
 
-public class WaterSensorItemImpl extends ItemImpl implements WaterSensorItem, CallbackIntConsumer{
+public class WaterSensorItemImpl extends ItemImpl implements WaterSensorItem, CallbackIntConsumer, ItemSourceToPullAlarm{
 
 	// Parameter Values
 	private ProtectUnit protectUnit;
@@ -121,8 +122,10 @@ public class WaterSensorItemImpl extends ItemImpl implements WaterSensorItem, Ca
 
 	@Override
 	public void valueChanged(int value) {
+		// Take over as Maximum value
+		regardValue(value);
     	protectUnit.activateAlert("Wassersensor", LogController.MSG_WATER, AlertController.ALERT_TYPE_WATER);
-		LogControllerImpl.getInstance().createTechnicalLogMessage(protectUnit.getUnitName(), "Wassersensor", "voltage reached. voltage="+value);
+		LogControllerImpl.getInstance().createTechnicalLogMessage(protectUnit.getUnitName(), "Wassersensor", "voltage reached. voltage="+value+" threshold="+protectUnit.getCfgProtectUnit().getAiVoltageThreshold());
 	}
 
 }

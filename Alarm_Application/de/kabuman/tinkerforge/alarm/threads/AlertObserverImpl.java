@@ -1,7 +1,7 @@
 package de.kabuman.tinkerforge.alarm.threads;
 
+import de.kabuman.common.services.LogControllerImpl;
 import de.kabuman.tinkerforge.alarm.controller.AlertController;
-import de.kabuman.tinkerforge.alarm.controller.LogControllerImpl;
 
 
 

@@ -1,5 +1,7 @@
 package de.kabuman.tinkerforge.alarm.units;
 
+import com.tinkerforge.BrickletLCD20x4;
+
 
 /**
  * Interface for Alert Units
@@ -19,5 +21,7 @@ public interface AlertUnit extends Unit{
 	 * Deactivate the alert (switch of the beeper)
 	 */
 	void deactivateAlert();
+
+	BrickletLCD20x4 getAlarmDisplay();
 	
 }

@@ -2,6 +2,7 @@ package de.kabuman.tinkerforge.alarm.items.digital.input;
 
 import com.tinkerforge.BrickletTemperature;
 
+
 public class TemperatureCallbackListenerImpl implements BrickletTemperature.TemperatureListener {
 
 	private CallbackShortConsumer callbackShortConsumer;

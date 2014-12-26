@@ -5,3 +5,16 @@
 /ProtectUnit.class
 /ProtectUnitImpl.class
 /Unit.class
+/AbstractUnit.class
+/WifiMasterTfStackImpl.class
+/ProtectUnitTfStackImpl.class
+/WetterApp.class
+/WetterMain.class
+/ProtectUnitApp.class
+/ProtectUnitMain.class
+/ProtectUnitImplCopy.class
+/AlertUnitMobileTfStackImpl.class
+/AlertUnitRemoteTfStackImpl.class
+/WeatherUnit.class
+/WeatherUnitImpl.class
+/WeatherUnitTfStackImpl.class

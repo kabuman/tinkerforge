@@ -4,11 +4,10 @@ import com.tinkerforge.BrickletTemperature;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
-import de.kabuman.common.services.MinMaxService;
-import de.kabuman.common.services.MinMaxServiceImpl;
 import de.kabuman.tinkerforge.alarm.units.Unit;
+import de.kabuman.tinkerforge.screencontroller.sources.ItemSourceToPullAlarm;
 
-public class TemperatureSensorItemImpl extends ItemImpl implements TemperatureSensorItem, CallbackShortConsumer {
+public class TemperatureSensorItemImpl extends ItemImpl implements TemperatureSensorItem, CallbackShortConsumer, ItemSourceToPullAlarm {
 
 	// Parameter Values
 	@SuppressWarnings("unused")
@@ -42,6 +41,9 @@ public class TemperatureSensorItemImpl extends ItemImpl implements TemperatureSe
 		
 		installSensor();
 		
+		if (unit == null){
+			activateSensor();
+		}
 	}
 	
 	private void installSensor(){
@@ -106,6 +108,9 @@ public class TemperatureSensorItemImpl extends ItemImpl implements TemperatureSe
 	 * @see de.kabuman.tinkerforge.alarm.items.digital.input.TemperatureSensorItem#getCurrentValue()
 	 */
 	public double getCurrentValue() {
+		if (!active){
+			System.out.println("TemperatureSensor::getCurrentValue: Sensor is not active!");
+		}
 		return (double) currentValue / 10;
 	}
 

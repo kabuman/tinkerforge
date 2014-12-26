@@ -3,7 +3,9 @@ package de.kabuman.tinkerforge.alarm.threads;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.kabuman.tinkerforge.alarm.controller.LogControllerImpl;
+import de.kabuman.common.services.LogControllerImpl;
+import de.kabuman.common.services.StopWatchService;
+import de.kabuman.common.services.StopWatchServiceImpl;
 import de.kabuman.tinkerforge.alarm.items.digital.input.HumiditySensorItem;
 import de.kabuman.tinkerforge.alarm.items.digital.input.TemperatureSensorItem;
 import de.kabuman.tinkerforge.alarm.items.digital.output.WaterSensorItem;
@@ -12,6 +14,14 @@ import de.kabuman.tinkerforge.alarm.units.Unit;
 
 
 
+/**
+ * Writes log records on a regular base 
+ * - temperature
+ * - humidity
+ * - water sensor value
+ * with current, min, max, average value
+ *
+ */
 public class TemperatureObserverImpl extends Thread{
 
 	// Alarm Signal Object
@@ -26,6 +36,7 @@ public class TemperatureObserverImpl extends Thread{
 
 	private final String sep = ";";
 	
+	private StopWatchService stopWatchService;
 	
 	/**
 	 * Constructor
@@ -33,6 +44,10 @@ public class TemperatureObserverImpl extends Thread{
 	public TemperatureObserverImpl(List<Unit> unitList, long sequence) {
 		this.unitList = unitList;
 		this.sequence = sequence;
+		
+		stopWatchService = new StopWatchServiceImpl();
+		stopWatchService.start();
+
 
 		LogControllerImpl.getInstance().createTechnicalLogMessage("TemperatureObserver", "Start", "sequence="+sequence);
 
@@ -57,32 +72,50 @@ public class TemperatureObserverImpl extends Thread{
 		try {
 			boolean doLoop = true;
 			while (doLoop) {
-				Thread.sleep(sequence);
 				if (active){
+
+					stopWatchService.getCurrent();
+					LogControllerImpl.getInstance().createTechnicalLogMessage("TemperatureObserver", "power-on time", stopWatchService.getCurrentString());
+
 					StringBuffer temperatureLogData = new StringBuffer();
 					StringBuffer humidityLogData = new StringBuffer();
-					
+
 					for (int i = 0; i < unitList.size(); i++) {
 						Unit unit = unitList.get(i);
-						
-						if (unit.getTemperatureSensorItem() != null){
-							temperatureLogData.append(writeTechnicalLogAndCollectForTemperatureLog(unit));
+
+						if (!unit.isConnected()){
+							continue;
 						}
 						
-						if (unit.getHumiditySensorItem() != null){
+						if (unit.getTemperatureSensorItem() != null && unit.getTemperatureSensorItem().isActive()){
+							temperatureLogData.append(writeTechnicalLogAndCollectForTemperatureLog(unit));
+						}
+
+						if (!unit.isConnected()){
+							continue;
+						}
+						
+						if (unit.getHumiditySensorItem() != null && unit.getHumiditySensorItem().isActive()){
 							humidityLogData.append(writeTechnicalLogAndCollectForHumidityLog(unit));
+						}
+
+						if (!unit.isConnected()){
+							continue;
 						}
 						
 						if (unit instanceof ProtectUnit){
 							ProtectUnit protectUnit = (ProtectUnit) unit;
-							if (protectUnit.getWaterSensorItem() != null){
+							if (protectUnit.getWaterSensorItem() != null && protectUnit.getWaterSensorItem().isActive()){
 								writeTechnicalLogForWaterSensor(protectUnit);
 							}
 						}
 					}
+					
 					LogControllerImpl.getInstance().createTemperatureLogMessage(temperatureLogData.toString());
 					LogControllerImpl.getInstance().createHumidityLogMessage(humidityLogData.toString());
 				}
+				//sleep
+				Thread.sleep(sequence);
 			}
 		} catch (InterruptedException e) {
 		} 

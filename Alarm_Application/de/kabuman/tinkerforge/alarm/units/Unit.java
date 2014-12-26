@@ -4,13 +4,14 @@ import com.tinkerforge.BrickMaster;
 
 import de.kabuman.tinkerforge.alarm.items.digital.input.HumiditySensorItem;
 import de.kabuman.tinkerforge.alarm.items.digital.input.TemperatureSensorItem;
+import de.kabuman.tinkerforge.services.threads.AliveObservable;
 
 /**
  * Interface for all kinds of Units:
  * - Alert Unit
  * - Protect Unit
  */
-public interface Unit {
+public interface Unit extends AliveObservable{
 	
 	/**
 	 * @return BrickMaster - the brick master of the unit

@@ -5,8 +5,9 @@ import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
 import de.kabuman.tinkerforge.alarm.units.Unit;
+import de.kabuman.tinkerforge.screencontroller.sources.ItemSourceToPullAlarm;
 
-public class HumiditySensorItemImpl extends ItemImpl implements HumiditySensorItem, CallbackIntConsumer {
+public class HumiditySensorItemImpl extends ItemImpl implements HumiditySensorItem, CallbackIntConsumer, ItemSourceToPullAlarm {
 
 	// Parameter Values
 	@SuppressWarnings("unused")
@@ -39,6 +40,9 @@ public class HumiditySensorItemImpl extends ItemImpl implements HumiditySensorIt
 		
 		installSensor();
 		
+		if (unit == null){
+			activateSensor();
+		}
 	}
 	
 	private void installSensor(){
@@ -99,8 +103,15 @@ public class HumiditySensorItemImpl extends ItemImpl implements HumiditySensorIt
 		regardValue(getCurrentValue());
 	}
 
-	public int getCurrentValue() {
-		return currentValue;
+	/* (non-Javadoc)
+	 * @see de.kabuman.tinkerforge.alarm.items.digital.input.HumiditySensorItem#getCurrentValue()
+	 */
+	public double getCurrentValue() {
+		if (!active){
+			System.out.println("HumiditySensor::getCurrentValue: Unit is not active!");
+		}
+
+		return (double) currentValue;
 	}
 
 }
