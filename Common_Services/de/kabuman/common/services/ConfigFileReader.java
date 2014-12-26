@@ -4,6 +4,10 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Implements a buffered file reader for a comfortable read in of config file records
@@ -11,12 +15,16 @@ import java.io.IOException;
  */
 public class ConfigFileReader {
 
-	FileReader fileReader;
-	BufferedReader bufferedReader;
+	private FileReader fileReader;
+	private BufferedReader bufferedReader;
 	
-	String line;
-	String[] vars;
-	String sep;
+	private String line;
+	private String[] vars;
+	private String sep;
+	
+	public DateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
+	public DateFormat simpleTimeFormat = new SimpleDateFormat("kk:mm:ss");
+	public DateFormat simpleDateTimeFormat = new SimpleDateFormat("dd.MM.yyyy kk:mm:ss");
 
 	/**
 	 * Constructor
@@ -65,6 +73,36 @@ public class ConfigFileReader {
 			return null;
 		}
 		
+		if (line==null){
+			return null;
+		} else {
+			return line.trim();
+		}
+	}
+	
+	/**
+	 * Set a line. <br>
+	 *  <br>
+	 * @return String - the trimmed line 
+	 */
+	
+	
+	/**
+	 * Set a line and the var separator
+	 * Can be used if the line does not come from a config file
+	 * 
+	 * @param line - the line to disamble
+	 * @param sep - separator to separate the variables for the given line
+	 * @return line - the trimmed line
+	 */
+	public String setLine(String line, String sep){
+		this.sep = sep;
+		vars = null;
+
+		if (line != null){
+			vars = line.split(sep);
+		}
+
 		if (line==null){
 			return null;
 		} else {
@@ -187,6 +225,96 @@ public class ConfigFileReader {
 	 */
 	public Boolean getBoolean(int pos){
 		return (Integer.parseInt(vars[pos]) == 1);
+	}
+	
+	/**
+	 * Returns the content of the given array position as Date  <br>
+	 * The format will b mm.dd.yyyy <br>
+	 *  <br>
+	 * @param pos - the array position (index)
+	 * @return Date - "mm.dd.yyyy 00:01:00"
+	 */
+	public Date getDate(int pos){
+		try {
+			return simpleDateFormat.parse(vars[pos]);
+		} catch (ParseException e) {
+			return null;
+		}
+	}
+	
+	/**
+	 * Returns the content of the given array position as Date Time  <br>
+	 * From the given Date object the time "hh:mm:ss" ONLY will be taken over <br>
+	 * The format will be "dd.mm.yyyy hh.mm.ss" <br>
+	 *  <br>
+	 * @param pos - the array position (index)
+	 * @return Date - "mm.dd.yyyy hh:mm:ss"
+	 */
+	@SuppressWarnings("deprecation")
+	public Date getDate(int pos, Date givenTime){
+		try {
+			Date result = simpleDateFormat.parse(vars[pos]);
+			result.setHours(givenTime.getHours());
+			result.setMinutes(givenTime.getMinutes());
+			result.setSeconds(givenTime.getSeconds());
+			return result;
+		} catch (ParseException e) {
+			return null;
+		}
+	}
+	
+	/**
+	 * Returns the content of the given array position as Time  <br>
+	 * The format will be hh.mm.ss <br>
+	 *  <br>
+	 * @param pos - the array position (index)
+	 * @return Date - "01.01.1970 hh.mm.ss"
+	 */
+	public Date getTime(int pos){
+		try {
+			return simpleTimeFormat.parse(vars[pos]);
+		} catch (ParseException e) {
+			return null;
+		}
+	}
+	
+	/**
+	 * Returns the content of the given array position as Date Time  <br>
+	 * From the given Date object the date "dd.mm.yyyy" ONLY will be taken over <br>
+	 * The format will be "dd.mm.yyyy hh.mm.ss" <br>
+	 *  <br>
+	 * @param pos - the array position (index)
+	 * @return Date - "dd.mm.yyyy hh.mm.ss"
+	 */
+	@SuppressWarnings("deprecation")
+	public Date getTime(int pos, Date givenDate){
+		try {
+			Date result = new Date(givenDate.getTime());
+			Date time = simpleTimeFormat.parse(vars[pos]);
+			result.setHours(time.getHours());
+			result.setMinutes(time.getMinutes());
+			result.setSeconds(time.getSeconds());
+			return result;
+		} catch (ParseException e) {
+			return null;
+		}
+	}
+	
+	/**
+	 * Returns the content of the given array position as Date Time  <br>
+	 * The format will be "dd.mm.yyyy hh.mm.ss" <br>
+	 *  <br>
+	 * @param pos - the array position (index)
+	 * @return Date - "dd.mm.yyyy hh.mm.ss"
+	 */
+	public Date getDateTime(int pos){
+		try {
+			return simpleDateTimeFormat.parse(vars[pos]);
+		} catch (IndexOutOfBoundsException e) {
+			return null;
+		} catch (ParseException e) {
+			return null;
+		}
 	}
 	
 	/**

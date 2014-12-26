@@ -104,11 +104,12 @@ public class StringService {
 	 * Returns a new String filled left with leading blanks
 	 * Throws IllegalArgumentException if parameter conditions are violated
 
-	 * @param valueStrg - the vaule string (not null; value.length >= length(the next parameter)
+	 * @param value - the value string (not null; value.length >= length(the next parameter)
 	 * @param length - the length of the new String ( length >= value.length(the parameter before)
+	 * @param leadingValue - the string with leading characters
 	 * @return String - the new created String
 	 */
-	public static String fillLeft(String value, int length){
+	public static String fillLeft(String value, int length, String leadingValue){
 		if (value == null){
 			throw new IllegalArgumentException("StringService.fillLeft:: 'value not null' violation detected.");
 		}
@@ -120,7 +121,7 @@ public class StringService {
 
 		int emptyDigits = length - value.length();
 		if (emptyDigits > 0){
-			sb.append(StringService.create(emptyDigits));
+			sb.append(StringService.create(emptyDigits, leadingValue));
 		}
 		sb.append(value);
 		return sb.toString();

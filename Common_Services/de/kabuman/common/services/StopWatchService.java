@@ -10,14 +10,17 @@ public interface StopWatchService {
 	public void start();
 	
 	/**
-	 * Stops the stop watch temporarily and returns the stopover duration.
-	 * Use methods getSumMSec(), getSumString() to get further returns.
+	 * Stops the stop watch temporarily and returns the stop over duration.  <br>
+	 * Use methods getSumMSec(), getSumString() to get further returns. <br>
 	 * To continue the time measure use the method start() again.
+	 * @param comment - a log comment
 	 */
 	public void stopOver(String comment);
 	
 	/**
-	 * Same as "stopOver(comment)" but without the comment parameter.
+	 * Stops the stop watch temporarily and returns the stop over duration.  <br>
+	 * Use methods getSumMSec(), getSumString() to get further returns. <br>
+	 * To continue the time measure use the method start() again.
 	 */
 	public void stopOver();
 	
@@ -36,10 +39,10 @@ public interface StopWatchService {
 	public String getSumString();
 
 	/**
-	 * Returns the current duration until now
-	 * If StopWatch is not active, the duration (method "getSumSec()") is return (may be zero).
-	 * It is like a stopover, but the StopWatch will not be stopped
-	 * @return long - the duration in milli seconds
+	 * Returns the current duration until now  <br>
+	 * If StopWatch is not active, the duration (method "getSumSec()") is return (may be zero). <br>
+	 * It is like a stopover, but the StopWatch will not be stopped <br>
+	 * @return long - the duration in milliseconds
 	 */
 	public long getCurrent();
 	

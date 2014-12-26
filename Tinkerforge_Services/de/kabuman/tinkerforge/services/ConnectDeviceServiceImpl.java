@@ -21,6 +21,7 @@ import com.tinkerforge.BrickletPiezoBuzzer;
 import com.tinkerforge.BrickletRemoteSwitch;
 import com.tinkerforge.BrickletRotaryPoti;
 import com.tinkerforge.BrickletTemperature;
+import com.tinkerforge.BrickletTemperatureIR;
 import com.tinkerforge.BrickletVoltage;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.TimeoutException;
@@ -66,8 +67,23 @@ public class ConnectDeviceServiceImpl implements DeviceIdentifier{
 		case MB10:
 			deviceUsage = new DeviceUsage(new BrickMaster(UID_MB10,ipcon), ipcon, MB10, UID_MB10);
 			break;
+		case MB11:
+			deviceUsage = new DeviceUsage(new BrickMaster(UID_MB11,ipcon), ipcon, MB11, UID_MB11);
+			break;
+		case MB12:
+			deviceUsage = new DeviceUsage(new BrickMaster(UID_MB12,ipcon), ipcon, MB12, UID_MB12);
+			break;
+		case MB13:
+			deviceUsage = new DeviceUsage(new BrickMaster(UID_MB13,ipcon), ipcon, MB13, UID_MB13);
+			break;
 		case LCD201:
 			deviceUsage = new DeviceUsage(new BrickletLCD20x4(UID_LCD201,ipcon), ipcon, LCD201, UID_LCD201);
+			break;
+		case LCD202:
+			deviceUsage = new DeviceUsage(new BrickletLCD20x4(UID_LCD202,ipcon), ipcon, LCD202, UID_LCD202);
+			break;
+		case LCD203:
+			deviceUsage = new DeviceUsage(new BrickletLCD20x4(UID_LCD203,ipcon), ipcon, LCD203, UID_LCD203);
 			break;
 		case AL1:
 			deviceUsage = new DeviceUsage(new BrickletAmbientLight(UID_AL1,ipcon), ipcon, AL1, UID_AL1);
@@ -125,6 +141,12 @@ public class ConnectDeviceServiceImpl implements DeviceIdentifier{
 			break;
 		case IO45:
 			deviceUsage = new DeviceUsage(new BrickletIO4(UID_IO45,ipcon), ipcon, IO45, UID_IO45);
+			break;
+		case IO46:
+			deviceUsage = new DeviceUsage(new BrickletIO4(UID_IO46,ipcon), ipcon, IO46, UID_IO46);
+			break;
+		case IO47:
+			deviceUsage = new DeviceUsage(new BrickletIO4(UID_IO47,ipcon), ipcon, IO47, UID_IO47);
 			break;
 		case IO161:
 			deviceUsage = new DeviceUsage(new BrickletIO16(UID_IO161,ipcon), ipcon, IO161, UID_IO161);
@@ -198,6 +220,12 @@ public class ConnectDeviceServiceImpl implements DeviceIdentifier{
 		case TP3:
 			deviceUsage = new DeviceUsage(new BrickletTemperature(UID_TP3,ipcon), ipcon, TP3, UID_TP3);
 			break;
+		case TP4:
+			deviceUsage = new DeviceUsage(new BrickletTemperature(UID_TP4,ipcon), ipcon, TP4, UID_TP4);
+			break;
+		case TP5:
+			deviceUsage = new DeviceUsage(new BrickletTemperature(UID_TP5,ipcon), ipcon, TP5, UID_TP5);
+			break;
 		case HM1:
 			deviceUsage = new DeviceUsage(new BrickletHumidity(UID_HM1,ipcon), ipcon, HM1, UID_HM1);
 			break;
@@ -206,6 +234,9 @@ public class ConnectDeviceServiceImpl implements DeviceIdentifier{
 			break;
 		case HM3:
 			deviceUsage = new DeviceUsage(new BrickletHumidity(UID_HM3,ipcon), ipcon, HM3, UID_HM3);
+			break;
+		case HM4:
+			deviceUsage = new DeviceUsage(new BrickletHumidity(UID_HM4,ipcon), ipcon, HM4, UID_HM4);
 			break;
 		case PS1:
 			deviceUsage = new DeviceUsage(new BrickletPiezoBuzzer(UID_PS1,ipcon), ipcon, PS1, UID_PS1);
@@ -221,6 +252,9 @@ public class ConnectDeviceServiceImpl implements DeviceIdentifier{
 			break;
 		case MD3:
 			deviceUsage = new DeviceUsage(new BrickletMotionDetector(UID_MD3,ipcon), ipcon, MD3, UID_MD3);
+			break;
+		case IP1:
+			deviceUsage = new DeviceUsage(new BrickletTemperatureIR(UID_IP1,ipcon), ipcon, IP1, UID_IP1);
 			break;
 		default:
 			System.out.println("createAndConnectBM:: Unbekannte Geräte-ID="+id);

@@ -70,6 +70,7 @@ public class ConnectServiceImpl implements ConnectService {
 	public IPConnection createConnect(String host, int port){
 		IPConnection ipcon = new IPConnection();
 		try {
+			ipcon.setAutoReconnect(true);
 			ipcon.connect(host, port);
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
@@ -90,6 +91,7 @@ public class ConnectServiceImpl implements ConnectService {
 	public IPConnection createConnectE(String host, int port) throws UnknownHostException, AlreadyConnectedException, IOException{
 		IPConnection ipcon = new IPConnection();
 		ipcon.setTimeout(20000);
+		ipcon.setAutoReconnect(true);
 		ipcon.connect(host, port);
 		return ipcon;
 	}

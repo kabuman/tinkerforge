@@ -30,7 +30,12 @@ public interface DeviceIdentifier {
 	public static final String UID_MB7 = new String("62BqLy");		// !Master Brick 					(17.08.2013)
 	public static final String UID_MB8 = new String("5Vmi4w");		// !Master Brick 					(28.08.2013)
 	public static final String UID_MB9 = new String("6R5Dxo");		// !Master Brick 					(18.09.2013)
+	public static final String UID_MB10 = new String("6xCEaf");		// Master Brick 					(08.01.2014)
+	public static final String UID_MB11 = new String("6QEQMw");		// !Master Brick 					(16.07.2014)
+	public static final String UID_MB12 = new String("6qCcWH");		// !Master Brick 					(01.07.2014)
+	public static final String UID_MB13 = new String("6CNXPN");		// !Master Brick 					(01.07.2014)
 	
+		
 		
 	public static final String UID_JS1 = new String("7s3");			// Joystick
 
@@ -41,6 +46,8 @@ public interface DeviceIdentifier {
 	public static final String UID_IO43 = new String("eYB");		// Input / Output - 4 channel	(28.08.2013)
 	public static final String UID_IO44 = new String("eYr");		// Input / Output - 4 channel	(18.09.2013)
 	public static final String UID_IO45 = new String("eXY");		// Input / Output - 4 channel	(18.09.2013)
+	public static final String UID_IO46 = new String("hhj");		// Input / Output - 4 channel	(16.07.2014)
+	public static final String UID_IO47 = new String("h77");		// Input / Output - 4 channel	(16.07.2014)
 	
 	
 
@@ -58,6 +65,8 @@ public interface DeviceIdentifier {
 	public static final String UID_QR1 = new String("gR8");			// Industrial Quad Relay		(17.08.2013)
 
 	public static final String UID_LCD201 = new String("81N");		// LCD 20 x 4					(11.05.2012)
+	public static final String UID_LCD202 = new String("o6e");		// LCD 20 x 4					(01.07.2014)
+	public static final String UID_LCD203 = new String("od9");		// LCD 20 x 4					(16.07.2014)
 
 	public static final String UID_SV1 = new String("6JnHkq");	// !Servo Brick					(30.05.2012)
 
@@ -83,12 +92,15 @@ public interface DeviceIdentifier {
 	public static final String UID_TP1 = new String("dSA");			// Temperature					(01.11.2013)
 	public static final String UID_TP2 = new String("dZE");			// Temperature					(01.11.2013)
 	public static final String UID_TP3 = new String("dDj");			// Temperature					(01.11.2013)
+	public static final String UID_TP4 = new String("nqg");			// Temperature					(16.07.2014)
+	public static final String UID_TP5 = new String("no1");			// Temperature					(16.07.2014)
+	
 	public static final String UID_HM1 = new String("hVz");			// Humidity						(01.11.2013)
 	public static final String UID_HM2 = new String("hUR");			// Humidity						(01.11.2013)
 	public static final String UID_HM3 = new String("hXP");			// Humidity						(01.11.2013)
+	public static final String UID_HM4 = new String("nyx");			// Humidity						(16.07.2014)
 	
 	public static final String UID_PS1 = new String("iMc");			// Piezo Speaker 				(08.01.2014)
-	public static final String UID_MB10 = new String("6xCEaf");		// Master Brick 				(08.01.2014)
 	public static final String UID_MD1 = new String("jXo");			// Motion Detection				(08.01.2014)
 	public static final String UID_RS1 = new String("jP3");			// Remote Switch				(08.01.2014)
 
@@ -99,6 +111,7 @@ public interface DeviceIdentifier {
 	public static final String UID_HE1 = new String("kpg");			// Hall Effect					(24.02.2014)
 	public static final String UID_HE2 = new String("kmz");			// Hall Effect					(24.02.2014)
 	
+	public static final String UID_IP1 = new String("kr8");			// Infrarot Temperature			(01.07.2014)
 
 	// SD1: Power Supply Step-Down (03.05.2012)
 	// SD2: Power Supply Step-Down (11.05.2012)
@@ -112,6 +125,9 @@ public interface DeviceIdentifier {
 	// WE2:	Wifi Extension			(.06.2013)		buzinet:192.168.178.43
 	// WE3:	Wifi Extension			(14.08.2013)
 	// WE4:	Wifi Extension			(28.08.2013)
+	// WE5:	Wifi Extension			(01.07.2017)	..1312
+	// WE6:	Wifi Extension			(16.07.2017)	..1454
+	// WE7:	Wifi Extension			(?)	..14DC
 	
 
 	
@@ -182,6 +198,17 @@ public interface DeviceIdentifier {
 	public static final int RS1 = 63;
 	public static final int MD2 = 64;
 	public static final int MD3 = 65;
+	public static final int MB11 = 66;
+	public static final int HM4 = 67;
+	public static final int TP4 = 68;
+	public static final int LCD202 = 69;
+	public static final int MB12 = 70;
+	public static final int MB13 = 71;
+	public static final int IO46 = 72;
+	public static final int IO47 = 73;
+	public static final int IP1 = 74;
+	public static final int TP5 = 75;
+	public static final int LCD203 = 76;
 
 	
 

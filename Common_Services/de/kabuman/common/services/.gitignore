@@ -17,3 +17,11 @@
 /DummyTrustManager.class
 /MinMaxService.class
 /MinMaxServiceImpl.class
+/DateTimeService.class
+/CommonCallback.class
+/CommonObserver.class
+/CommonObserverImpl.class
+/LogController.class
+/LogControllerImpl$LogMessage.class
+/LogControllerImpl.class
+/MapHelper.class

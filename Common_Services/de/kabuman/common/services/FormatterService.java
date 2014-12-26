@@ -1,6 +1,5 @@
 package de.kabuman.common.services;
 
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -24,12 +23,36 @@ public class FormatterService{
 
     static DecimalFormat dfShort = new DecimalFormat( "#0" );
 
+    public static DecimalFormat dfTemperature = new DecimalFormat( "#########0.0" );
+    static DecimalFormat dfHumidity = new DecimalFormat( "00.0" );
 
     static SimpleDateFormat dfDate = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS");
     static SimpleDateFormat dfDateDDMMYYYY = new SimpleDateFormat("dd.MM.yyyy");
-    static SimpleDateFormat dfDateHHmmssSSS = new SimpleDateFormat("HH:mm:ss.SSS");
-    static SimpleDateFormat dfDateHHmmss = new SimpleDateFormat("HH:mm:ss");
-    static SimpleDateFormat dfDateHHMM = new SimpleDateFormat("HH:mm");
+    static SimpleDateFormat dfDateHHmmssSSS = new SimpleDateFormat("kk:mm:ss.SSS");
+    static SimpleDateFormat dfDateHHmmss = new SimpleDateFormat("kk:mm:ss");
+    static SimpleDateFormat dfDateHHMM = new SimpleDateFormat("kk:mm");
+    
+    public static String getEinAus(Boolean boolValue){
+    	if (boolValue == null){
+    		return "-";
+    	}
+    	if (boolValue){
+    		return "Ein";
+    	} else {
+    		return "Aus";
+    	}
+    }
+    
+    public static String getJaNein(Boolean boolValue){
+    	if (boolValue == null){
+    		return "-";
+    	}
+    	if (boolValue){
+    		return "Ja";
+    	} else {
+    		return "Nein";
+    	}
+    }
     
 	public static String getLongFormVoltage(double voltage) {
 		return dfLongVoltage.format(voltage);
@@ -41,6 +64,14 @@ public class FormatterService{
 
 	public static String getShortFormVoltage(double voltage) {
 		return dfShortVoltage.format(voltage);
+	}
+
+	public static String getTemperature(double temperature) {
+		return dfTemperature.format(temperature);
+	}
+
+	public static String getHumidity(double humidity) {
+		return dfHumidity.format(humidity);
 	}
 
 	public static String getShortFormCurrent(double current) {
