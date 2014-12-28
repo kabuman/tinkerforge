@@ -1,0 +1,10 @@
+// Seems to be the right conversion
+Boolean myBoolean = null;
+boolean myboolean = (myBoolean == null) ? false:myBoolean;
+System.out.println(myboolean)
+
+
+// Creates a null pointer
+Boolean myBoolean = null;
+boolean myboolean = myBoolean;
+System.out.println(myboolean)An exception occurred during evaluation:  java.lang.NullPointerException
