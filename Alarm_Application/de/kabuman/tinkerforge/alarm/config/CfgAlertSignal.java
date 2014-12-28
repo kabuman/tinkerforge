@@ -2,6 +2,10 @@ package de.kabuman.tinkerforge.alarm.config;
 
 import de.kabuman.tinkerforge.services.config.CfgRemoteSwitchData;
 
+/**
+ * @author Karsten Buchmann
+ *
+ */
 public class CfgAlertSignal {
 
 	private boolean quiet; 
