@@ -4,6 +4,8 @@
 
 /**
  * @author Karsten Buchmann
+ * 
+ * Class without any important feature
  *
  */
 public class MyClass {
