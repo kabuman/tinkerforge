@@ -1,4 +1,8 @@
 
+/**
+ * @author Karsten Buchmann
+ *
+ */
 public class MyClass {
 
 	public MyClass() {
