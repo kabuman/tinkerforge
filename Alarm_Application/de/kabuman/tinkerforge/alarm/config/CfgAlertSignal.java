@@ -4,7 +4,7 @@ import de.kabuman.tinkerforge.services.config.CfgRemoteSwitchData;
 
 /**
  * @author Karsten Buchmann
- *
+ * for signal
  */
 public class CfgAlertSignal {
 
